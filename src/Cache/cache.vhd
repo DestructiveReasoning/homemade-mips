@@ -74,7 +74,6 @@ begin
 					elsif(s_write = '1') THEN
 						data := s_writedata;
 						if(tag = tags_vector(index) and valids(index) = '1') then
-							dirty(index) <= '1';
 							cache(index)(word_offset) <= data;
 							state <= HIT;
 						else 
@@ -92,9 +91,13 @@ begin
 					state <= IDLE;
 				WHEN MEM_READ =>
 					m_addr <= to_integer(unsigned(s_addr)) + byte_index;
+					dirty(index) <= '0';
+					valids(index) <= '1';
 					if(byte_index = 4) then
 						if(write_miss = '1') then
-							cache(index)(word_offset) <= s_writedata;
+							write_miss := '0';
+							cache(index)(word_offset) <= data;
+							dirty(index) <= '1';
 						end if;
 						state <= HIT;
 					elsif(m_waitrequest = '0') then
