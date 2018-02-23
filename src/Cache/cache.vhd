@@ -92,7 +92,7 @@ begin
 				WHEN HIT =>
 					state <= IDLE; -- Set waitrequest LOW for one clock cycle
 				WHEN MEM_READ =>
-					m_addr <= to_integer(unsigned(s_addr)) + byte_index;
+					m_addr <= to_integer(unsigned(s_addr(14 downto 0))) + byte_index;
 					dirty(index) <= '0'; -- Newly-read block is always clean
 					valids(index) <= '1'; -- Newly-read block is always valid
 					if(byte_index = 4) then
@@ -109,7 +109,7 @@ begin
 				WHEN MEM_WRITE =>
 					-- Memory writes are only ever called when replacing a dirty block, whether it's with a read or a write
 					-- Must transition to a memory read always after a memory write, to bring appropriate block into cache
-					m_addr <= to_integer(unsigned(s_addr)) + byte_index;
+					m_addr <= to_integer(unsigned(s_addr(14 downto 0))) + byte_index;
 					m_writedata <= cache(index)(word_offset)((byte_index + 1) * 8 - 1 downto byte_index * 8);
 					if(byte_index = 4) then
 						byte_index := 0;
@@ -129,6 +129,6 @@ begin
 	index <= to_integer(unsigned(s_addr(8 downto 4)));
 	word_offset <= to_integer(unsigned(s_addr(3 downto 2)));
 	byte_offset <= to_integer(unsigned(s_addr(1 downto 0)));
-	s_waitrequest <= '0' WHEN state = HIT ELSE '1';
+	s_waitrequest <= '1' WHEN state = HIT ELSE '0';
 
 end arch;

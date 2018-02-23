@@ -116,6 +116,19 @@ test_process : process
 begin
 
 -- put your tests here
+	s_addr <= X"00001234";
+	s_writedata <= (others => '1');
+	s_write <= '1';
+	REPORT "WAITING";
+	wait for 200 * clk_period;
+	REPORT "DONE";
+	s_write <= '0';
+	s_read <= '1';
+	REPORT "WAITING";
+	wait for 200 * clk_period;
+	REPORT "DONE";
+	assert s_readdata = s_writedata REPORT "READ WRONG VALUE" SEVERITY ERROR;
+	WAIT;
 	
 end process;
 	
