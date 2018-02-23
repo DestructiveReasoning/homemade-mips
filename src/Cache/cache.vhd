@@ -93,6 +93,7 @@ begin
 					state <= IDLE; -- Set waitrequest LOW for one clock cycle
 				WHEN MEM_READ =>
 					m_addr <= to_integer(unsigned(s_addr(14 downto 0))) + byte_index;
+          m_read <= '1';
 					dirty(index) <= '0'; -- Newly-read block is always clean
 					valids(index) <= '1'; -- Newly-read block is always valid
 					if(byte_index = 4) then
@@ -102,9 +103,12 @@ begin
 							dirty(index) <= '1';
 						end if;
 						state <= HIT;
+            byte_index := 0;
+            m_read <= '0';
 					elsif(m_waitrequest = '0') then
 						cache(index)(word_offset)((byte_index + 1) * 8 - 1 downto byte_index * 8) <= m_readdata; -- Read appropraite byte from word
 						byte_index := byte_index + 1;
+            m_read <= '0';
 					end if;
 				WHEN MEM_WRITE =>
 					-- Memory writes are only ever called when replacing a dirty block, whether it's with a read or a write
@@ -123,7 +127,7 @@ begin
 	end process;
 
 	s_readdata <= cache(index)(word_offset);					-- We can continuously update this output because the processor will only read it in the HIT state
-	m_read <= '1' WHEN state = MEM_READ ELSE '0';
+	--m_read <= '1' WHEN state = MEM_READ ELSE '0';
 	m_write <= '1' WHEN state = MEM_WRITE ELSE '0';
 	tag <= s_addr(14 downto 9);
 	index <= to_integer(unsigned(s_addr(8 downto 4)));
