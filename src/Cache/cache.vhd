@@ -96,6 +96,7 @@ begin
           m_read <= '1';
 					dirty(index) <= '0'; -- Newly-read block is always clean
 					valids(index) <= '1'; -- Newly-read block is always valid
+          tags_vector(index) <= tag;
 					if(byte_index = 4) then
 						if(write_miss = '1') then
 							write_miss := '0';
