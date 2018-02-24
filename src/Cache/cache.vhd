@@ -44,6 +44,7 @@ architecture arch of cache is
 	SIGNAL word_offset: integer range 0 to 3;									-- Stores extracted word offset from input address
 	SIGNAL byte_offset: integer range 0 to 3;									-- Stores extracted byte offset from input address (should always be 0 if aligned)
 	SIGNAL index: integer range 0 to 31;										-- Stores extracted index from input address
+  signal bin_idx : std_logic_vector(4 downto 0);
 begin
 
 -- s_addr format (T - tag, I - index, W - word offset, B - byte offset):
@@ -62,6 +63,8 @@ begin
 				WHEN POWERON => -- Initialize all dirty and valid bits to 0
 					valids <= (others => '0');
 					dirty <= (others => '0');
+          m_read <= '0';
+          m_write <= '0';
 					state <= IDLE;
 				WHEN IDLE => -- Main waiting state
 					if(s_read = '1') THEN
@@ -75,6 +78,7 @@ begin
 						data := s_writedata;
 						if(tag = tags_vector(index) and valids(index) = '1') then
 							cache(index)(word_offset) <= data;
+              dirty(index) <= '1';
 							state <= HIT;
 						else 
 							byte_index := 0;
@@ -114,13 +118,17 @@ begin
 				WHEN MEM_WRITE =>
 					-- Memory writes are only ever called when replacing a dirty block, whether it's with a read or a write
 					-- Must transition to a memory read always after a memory write, to bring appropriate block into cache
-					m_addr <= to_integer(unsigned(s_addr(14 downto 0))) + byte_index;
-					m_writedata <= cache(index)(word_offset)((byte_index + 1) * 8 - 1 downto byte_index * 8);
 					if(byte_index = 4) then
 						byte_index := 0;
+            m_write <= '0';
 						state <= MEM_READ;
 					elsif(m_waitrequest = '0') then
 						byte_index := byte_index + 1;
+            m_write <= '0';
+          else
+            m_addr <= to_integer(unsigned(tags_vector(index))) * 512 + index * 16 + byte_index;
+					  m_writedata <= cache(index)(word_offset)((byte_index + 1) * 8 - 1 downto byte_index * 8);
+            m_write <= '1';
 					end if;
 				WHEN others => null;
 				end case;
@@ -129,11 +137,11 @@ begin
 
 	s_readdata <= cache(index)(word_offset);					-- We can continuously update this output because the processor will only read it in the HIT state
 	--m_read <= '1' WHEN state = MEM_READ ELSE '0';
-	m_write <= '1' WHEN state = MEM_WRITE ELSE '0';
+	--m_write <= '1' WHEN state = MEM_WRITE ELSE '0';
 	tag <= s_addr(14 downto 9);
 	index <= to_integer(unsigned(s_addr(8 downto 4)));
 	word_offset <= to_integer(unsigned(s_addr(3 downto 2)));
 	byte_offset <= to_integer(unsigned(s_addr(1 downto 0)));
-	s_waitrequest <= '1' WHEN state = HIT ELSE '0';
+	s_waitrequest <= '0' WHEN state = HIT ELSE '1';
 
 end arch;

@@ -68,7 +68,13 @@ signal m_write : std_logic;
 signal m_writedata : std_logic_vector (7 downto 0);
 signal m_waitrequest : std_logic; 
 
+signal tag : std_logic_vector(5 downto 0);
+signal index : std_logic_vector(4 downto 0);
+signal word_offest : std_logic_vector(1 downto 0);
+
 begin
+
+s_addr <= "00000000000000000" & tag & index & word_offest & "00";
 
 -- Connect the components which we instantiated above to their
 -- respective signals.
@@ -117,18 +123,62 @@ begin
 
   wait for clk_period;
 -- put your tests here
-	s_addr <= X"00000010";
+  tag <= (others => '0');
+  index <= (0 => '1', others => '0');
+  word_offest <= (others => '0');
+
+  -- read a word
 	s_read <= '1';
   s_write <= '0';
   s_writedata <= (others => '0');
 	REPORT "WAITING";
-  wait until s_waitrequest = '1';
+  wait until s_waitrequest = '0';
+  assert s_readdata = X"13121110";
   s_read <= '0';
 
-  wait for 2*clk_period;
-  s_read <= '1';
-  wait until s_waitrequest = '1';
-  s_read <= '1';
+  -- read a word
+  wait for 4*clk_period;
+  tag <= (0 => '1', others => '0');
+  index <= (1 => '1', others => '0');
+	s_read <= '1';
+  s_write <= '0';
+  s_writedata <= (others => '0');
+	REPORT "WAITING";
+  wait until s_waitrequest = '0';
+  s_read <= '0';
+
+  -- write to previous address
+  wait for 4*clk_period;
+	s_read <= '0';
+  s_write <= '1';
+  s_writedata <= (others => '1');
+	REPORT "WAITING";
+  wait until s_waitrequest = '0';
+  s_write <= '0';
+
+  -- attempt to trigger write back
+  wait for 4*clk_period;
+  tag <= (1 => '1', others => '0');
+	s_read <= '1';
+  s_write <= '0';
+  s_writedata <= (others => '0');
+	REPORT "WAITING";
+  wait until s_waitrequest = '0';
+  s_read <= '0';
+
+  -- read and check whether write back
+  -- data present in main memory
+  wait for 6*clk_period;
+  tag <= (0 => '1', others => '0');
+  index <= (1 => '1', others => '0');
+	s_read <= '1';
+  s_write <= '0';
+  s_writedata <= (others => '0');
+	REPORT "WAITING";
+  wait until s_waitrequest = '0';
+  assert s_readdata = x"FFFFFFFF" severity error;
+  s_read <= '0';
+
 	WAIT;
 	
 end process;
