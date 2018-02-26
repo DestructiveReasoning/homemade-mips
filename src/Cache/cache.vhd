@@ -96,24 +96,25 @@ begin
 				WHEN HIT =>
 					state <= IDLE; -- Set waitrequest LOW for one clock cycle
 				WHEN MEM_READ =>
-					m_addr <= to_integer(unsigned(s_addr(14 downto 0))) + byte_index;
+					m_addr <= to_integer(unsigned(tag))*512 + index*16 + word_offset*4 + byte_index;
           m_read <= '1';
 					dirty(index) <= '0'; -- Newly-read block is always clean
 					valids(index) <= '1'; -- Newly-read block is always valid
           tags_vector(index) <= tag;
-					if(byte_index = 4) then
-						if(write_miss = '1') then
-							write_miss := '0';
-							cache(index)(word_offset) <= data; -- When finished reading, write appropriate word in block if a write was requested
-							dirty(index) <= '1';
-						end if;
-						state <= HIT;
-            byte_index := 0;
-            m_read <= '0';
-					elsif(m_waitrequest = '0') then
+					if(m_waitrequest = '0') then
 						cache(index)(word_offset)((byte_index + 1) * 8 - 1 downto byte_index * 8) <= m_readdata; -- Read appropraite byte from word
 						byte_index := byte_index + 1;
             m_read <= '0';
+					  if(byte_index = 4) then
+					  	if(write_miss = '1') then
+					  		write_miss := '0';
+					  		cache(index)(word_offset) <= data; -- When finished reading, write appropriate word in block if a write was requested
+					  		dirty(index) <= '1';
+					  	end if;
+					  	state <= HIT;
+              byte_index := 0;
+              m_read <= '0';
+            end if;
 					end if;
 				WHEN MEM_WRITE =>
 					-- Memory writes are only ever called when replacing a dirty block, whether it's with a read or a write
@@ -126,7 +127,7 @@ begin
 						byte_index := byte_index + 1;
             m_write <= '0';
           else
-            m_addr <= to_integer(unsigned(tags_vector(index))) * 512 + index * 16 + byte_index;
+            m_addr <= to_integer(unsigned(tags_vector(index))) * 512 + index * 16 + word_offset*4 + byte_index;
 					  m_writedata <= cache(index)(word_offset)((byte_index + 1) * 8 - 1 downto byte_index * 8);
             m_write <= '1';
 					end if;
