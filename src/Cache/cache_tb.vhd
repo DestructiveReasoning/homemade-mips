@@ -122,62 +122,62 @@ test_process : process
 begin
 
   wait for clk_period;
--- put your tests here
-  tag <= (others => '0');
-  index <= (0 => '1', others => '0');
-  word_offest <= (others => '0');
+-- -- put your tests here
+--   tag <= (others => '0');
+--   index <= (0 => '1', others => '0');
+--   word_offest <= (others => '0');
 
-  -- read a word
-	s_read <= '1';
-  s_write <= '0';
-  s_writedata <= (others => '0');
-	REPORT "WAITING";
-  wait until s_waitrequest = '0';
-  assert s_readdata = X"13121110";
-  s_read <= '0';
+--   -- read a word
+-- 	s_read <= '1';
+--   s_write <= '0';
+--   s_writedata <= (others => '0');
+-- 	REPORT "WAITING";
+--   wait until s_waitrequest = '0';
+--   assert s_readdata = X"13121110";
+--   s_read <= '0';
 
-  -- read a word
-  wait for 4*clk_period;
-  tag <= (0 => '1', others => '0');
-  index <= (1 => '1', others => '0');
-	s_read <= '1';
-  s_write <= '0';
-  s_writedata <= (others => '0');
-	REPORT "WAITING";
-  wait until s_waitrequest = '0';
-  s_read <= '0';
+--   -- read a word
+--   wait for 4*clk_period;
+--   tag <= (0 => '1', others => '0');
+--   index <= (1 => '1', others => '0');
+-- 	s_read <= '1';
+--   s_write <= '0';
+--   s_writedata <= (others => '0');
+-- 	REPORT "WAITING";
+--   wait until s_waitrequest = '0';
+--   s_read <= '0';
 
-  -- write to previous address
-  wait for 4*clk_period;
-	s_read <= '0';
-  s_write <= '1';
-  s_writedata <= (others => '1');
-	REPORT "WAITING";
-  wait until s_waitrequest = '0';
-  s_write <= '0';
+--   -- write to previous address
+--   wait for 4*clk_period;
+-- 	s_read <= '0';
+--   s_write <= '1';
+--   s_writedata <= (others => '1');
+-- 	REPORT "WAITING";
+--   wait until s_waitrequest = '0';
+--   s_write <= '0';
 
-  -- attempt to trigger write back
-  wait for 4*clk_period;
-  tag <= (1 => '1', others => '0');
-	s_read <= '1';
-  s_write <= '0';
-  s_writedata <= (others => '0');
-	REPORT "WAITING";
-  wait until s_waitrequest = '0';
-  s_read <= '0';
+--   -- attempt to trigger write back
+--   wait for 4*clk_period;
+--   tag <= (1 => '1', others => '0');
+-- 	s_read <= '1';
+--   s_write <= '0';
+--   s_writedata <= (others => '0');
+-- 	REPORT "WAITING";
+--   wait until s_waitrequest = '0';
+--   s_read <= '0';
 
   -- read and check whether write back
   -- data present in main memory
-  wait for 6*clk_period;
-  tag <= (0 => '1', others => '0');
-  index <= (1 => '1', others => '0');
-	s_read <= '1';
-  s_write <= '0';
-  s_writedata <= (others => '0');
-	REPORT "WAITING";
-  WAIT until s_waitrequest = '0';
-  ASSERT s_readdata = x"FFFFFFFF" SEVERITY ERROR;
-  s_read <= '0';
+  -- wait for 6*clk_period;
+  -- tag <= (0 => '1', others => '0');
+  -- index <= (1 => '1', others => '0');
+	-- s_read <= '1';
+  -- s_write <= '0';
+  -- s_writedata <= (others => '0');
+	-- REPORT "WAITING";
+  -- WAIT until s_waitrequest = '0';
+  -- ASSERT s_readdata = x"FFFFFFFF" SEVERITY ERROR;
+  -- s_read <= '0';
                    
 	WAIT FOR clk_period;
 	-- Attempt to write to cache
@@ -187,37 +187,51 @@ begin
 	s_write <= '1';
 	s_writedata <= x"0AAAAAAA";
   REPORT "WAITING";
-	WAIT until rising_edge(s_waitrequest);
+	WAIT UNTIL s_waitrequest = '0';
 	s_read <= '1';
 	s_write <= '0';
   REPORT "WAITING";
-	WAIT until rising_edge(s_waitrequest);
+	WAIT UNTIL s_waitrequest = '0';
 	ASSERT s_readdata = x"0AAAAAAA" REPORT "WRITE UNSUCCESSFUL" SEVERITY ERROR;
 	s_read <= '0';
 	s_write <= '0';
 	
 	WAIT for clk_period;
 	
-  REPORT "INVALID READ CLEAN MISS";
+  REPORT "INVALID WRITE and READ CLEAN MISS";
 	s_addr <= "11111111101111011111111110111111";
+	s_read <= '0';
+	s_write <= '1';
+	WAIT UNTIL s_waitrequest = '0';
 	s_read <= '1';
 	s_write <= '0';
-	WAIT until rising_edge(s_waitrequest);
-  ASSERT s_readdata = x"0AAAAAAA" REPORT "READ UNSUCCESSFUL" SEVERITY ERROR; -- here
+  WAIT UNTIL s_waitrequest = '0';
+  ASSERT s_readdata = x"0AAAAAAA" REPORT "WRITE and READ UNSUCCESSFUL" SEVERITY ERROR; -- here
 	s_read <= '0';
 	s_write <= '0';
 	
 	WAIT for clk_period;
 
+  -- REPORT "INVALID READ CLEAN MISS";
+	-- s_addr <= "11111111101111011111111110111111";
+	-- s_read <= '1';
+	-- s_write <= '0';
+	-- WAIT UNTIL s_waitrequest = '0';
+  -- ASSERT s_readdata = x"0AAAAAAA" REPORT "READ UNSUCCESSFUL" SEVERITY ERROR; -- here
+	-- s_read <= '0';
+	-- s_write <= '0';
+	
+	-- WAIT for clk_period;
+
   REPORT "VALID READ CLEAN MISS";
 	s_addr <= "00000000000000000000000000000000";
 	s_read <= '1';
 	s_write <= '0';
-	WAIT until rising_edge(s_waitrequest);
+	WAIT UNTIL s_waitrequest = '0';
 	s_addr <= "00000000000000000000000010000000";
 	s_read <= '1';
 	s_write <= '0';
-	WAIT until rising_edge(s_waitrequest);
+  WAIT UNTIL s_waitrequest = '0';
   ASSERT s_readdata = x"0AAAAAAA" REPORT "READ UNSUCCESSFUL" SEVERITY ERROR; -- here
 	s_read <= '0';
 	s_write <= '0';
@@ -228,11 +242,11 @@ begin
 	s_addr <= "10000000000000000000000000000000";
 	s_read <= '1';
 	s_write <= '0';
-	WAIT until rising_edge(s_waitrequest);
+	WAIT UNTIL s_waitrequest = '0';
 	s_write <= '1';
 	s_read <= '1'; -- here
 	s_writedata <= x"0000000A";
-	WAIT until rising_edge(s_waitrequest);
+	WAIT UNTIL s_waitrequest = '0';
   ASSERT s_readdata = x"0000000A" REPORT "WRITE UNSUCCESSFUL" SEVERITY ERROR; -- here
 	s_write <= '0';
 	s_read <= '0';
@@ -243,13 +257,13 @@ begin
 	s_addr <= "11100000000000000000000000000000";
 	s_read <= '1';
 	s_write <= '0';
-	WAIT until rising_edge(s_waitrequest);
+	WAIT UNTIL s_waitrequest = '0';
 	s_addr <= "11100000000000000000001000000000";
 	s_write <= '1';
 	s_read <= '0';
 	s_writedata <= x"0000000D";
-	WAIT until rising_edge(s_waitrequest);
-  ASSERT s_readdata = x"0000000A" REPORT "WRITE UNSUCCESSFUL" SEVERITY ERROR; -- here
+	WAIT UNTIL s_waitrequest = '0';
+  ASSERT s_readdata = x"0000000D" REPORT "WRITE UNSUCCESSFUL" SEVERITY ERROR; -- here
 	s_write <= '0';
 	s_read <= '0';
 	
@@ -260,15 +274,15 @@ begin
 	s_write <= '1';
 	s_read <= '0';
 	s_writedata <= x"0000000B";
-	WAIT until rising_edge(s_waitrequest);
+	WAIT UNTIL s_waitrequest = '0';
 	s_addr <= "11000000000000000000000000000000";
 	s_write <='0';
 	WAIT for clk_period;
 	s_write <= '1';
 	s_read <= '0';
 	s_writedata <= x"0000000C";
-	WAIT until rising_edge(s_waitrequest);
-	ASSERT s_readdata = x"0000000B" REPORT "WRITE UNSUCCESSFUL" SEVERITY ERROR; -- here
+	WAIT UNTIL s_waitrequest = '0';
+	ASSERT s_readdata = x"0000000C" REPORT "WRITE UNSUCCESSFUL" SEVERITY ERROR; -- here
 	s_write <= '0';
 	s_read <= '0';
 	
@@ -279,14 +293,14 @@ begin
 	s_addr <= "11111100000000000000000000000000";
 	s_write <= '1';
 	s_writedata <= x"04030201";
-	WAIT until rising_edge(s_waitrequest);
+	WAIT UNTIL s_waitrequest = '0';
 	s_addr <= "00000000000000000000000100000000";
 	s_write <= '1';
 	s_writedata <= x"000000BA";
-	WAIT until rising_edge(s_waitrequest);
+	WAIT UNTIL s_waitrequest = '0';
 	s_read <= '1';
 	s_write <= '0';
-	WAIT until rising_edge(s_waitrequest);
+	WAIT UNTIL s_waitrequest = '0';
 	ASSERT s_readdata = x"000000BA" REPORT "WRITE UNSUCCESSFUL" SEVERITY ERROR;
 	s_read <= '0';
 	s_write <= '0';
@@ -298,11 +312,11 @@ begin
 	s_addr <= "11111110000000000000000000000000";
 	s_write <= '1';
 	s_writedata <= x"04030201";
-	WAIT until rising_edge(s_waitrequest);
+	WAIT UNTIL s_waitrequest = '0';
 	s_addr <= "00000000000000000000100000000000";
 	s_write <= '0';
 	s_read <= '1';
-	WAIT until rising_edge(s_waitrequest);
+	WAIT UNTIL s_waitrequest = '0';
 	ASSERT s_readdata = x"03020100" REPORT "WRITE UNSUCCESSFUL" SEVERITY ERROR;
   s_read <= '0';
 	s_write <= '0';
