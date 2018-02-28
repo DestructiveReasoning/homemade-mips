@@ -192,7 +192,7 @@ begin
 	s_write <= '0';
   REPORT "WAITING";
 	WAIT UNTIL s_waitrequest = '0';
-	ASSERT s_readdata = x"0AAAAAAA" REPORT "WRITE UNSUCCESSFUL" SEVERITY ERROR;
+	ASSERT s_readdata = x"03020100" REPORT "READ UNSUCCESSFUL" SEVERITY ERROR;
 	s_read <= '0';
 	s_write <= '0';
 	
@@ -244,8 +244,11 @@ begin
 	s_write <= '0';
 	WAIT UNTIL s_waitrequest = '0';
 	s_write <= '1';
-	s_read <= '1'; -- here
+	s_read <= '0'; -- here
 	s_writedata <= x"0000000A";
+	WAIT UNTIL s_waitrequest = '0';
+	s_write <= '0';
+	s_read <= '1'; -- here
 	WAIT UNTIL s_waitrequest = '0';
   ASSERT s_readdata = x"0000000A" REPORT "WRITE UNSUCCESSFUL" SEVERITY ERROR; -- here
 	s_write <= '0';
@@ -261,9 +264,9 @@ begin
 	s_addr <= "11100000000000000000001000000000";
 	s_write <= '1';
 	s_read <= '0';
-	s_writedata <= x"0000000D";
+	s_writedata <= x"0AAAAAAA";
 	WAIT UNTIL s_waitrequest = '0';
-  ASSERT s_readdata = x"0000000D" REPORT "WRITE UNSUCCESSFUL" SEVERITY ERROR; -- here
+  ASSERT s_readdata = x"0AAAAAAA" REPORT "WRITE UNSUCCESSFUL" SEVERITY ERROR; -- here
 	s_write <= '0';
 	s_read <= '0';
 	
@@ -317,7 +320,7 @@ begin
 	s_write <= '0';
 	s_read <= '1';
 	WAIT UNTIL s_waitrequest = '0';
-	ASSERT s_readdata = x"03020100" REPORT "WRITE UNSUCCESSFUL" SEVERITY ERROR;
+	ASSERT s_readdata = x"04030201" REPORT "WRITE UNSUCCESSFUL" SEVERITY ERROR;
   s_read <= '0';
 	s_write <= '0';
 
