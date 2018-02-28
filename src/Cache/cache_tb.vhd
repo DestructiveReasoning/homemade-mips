@@ -212,16 +212,16 @@ begin
 	
 	WAIT for clk_period;
 
-  -- REPORT "INVALID READ CLEAN MISS";
-	-- s_addr <= "11111111101111011111111110111111";
-	-- s_read <= '1';
-	-- s_write <= '0';
-	-- WAIT UNTIL s_waitrequest = '0';
-  -- ASSERT s_readdata = x"0AAAAAAA" REPORT "READ UNSUCCESSFUL" SEVERITY ERROR; -- here
-	-- s_read <= '0';
-	-- s_write <= '0';
+  REPORT "INVALID READ CLEAN MISS";
+	s_addr <= "11111111101111011111111110111111";
+	s_read <= '1';
+	s_write <= '0';
+	WAIT UNTIL s_waitrequest = '0';
+  ASSERT s_readdata = x"0AAAAAAA" REPORT "READ UNSUCCESSFUL" SEVERITY ERROR; -- here
+	s_read <= '0';
+	s_write <= '0';
 	
-	-- WAIT for clk_period;
+	WAIT for clk_period;
 
   REPORT "VALID READ CLEAN MISS";
 	s_addr <= "00000000000000000000000000000000";
