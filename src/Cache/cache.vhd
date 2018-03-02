@@ -82,6 +82,7 @@ begin
 							state <= HIT;
 						else 
 							byte_index := 0;
+              write_miss := '1';
 							state <= CACHE_MISS;
 						end if;
 					end if;
