@@ -71,10 +71,11 @@ signal m_waitrequest : std_logic;
 signal tag : std_logic_vector(5 downto 0);
 signal index : std_logic_vector(4 downto 0);
 signal word_offest : std_logic_vector(1 downto 0);
+signal byte_offset : std_logic_vector(1 downto 0);
 
 begin
 
-s_addr <= "00000000000000000" & tag & index & word_offest & "00";
+s_addr <= "00000000000000000" & tag & index & word_offest & byte_offset;
 
 -- Connect the components which we instantiated above to their
 -- respective signals.
@@ -122,209 +123,116 @@ test_process : process
 begin
 
   wait for clk_period;
--- -- put your tests here
---   tag <= (others => '0');
---   index <= (0 => '1', others => '0');
---   word_offest <= (others => '0');
+-- put your tests here
+  -- little endian system
+  -- since data(addr) = addr(7 downto 0)
+  -- only last 8 bits because mem width is one byte
+  tag <= (others => '0');
+  index <= (0 => '1', others => '0');
+  word_offest <= (others => '0');
+  byte_offset <= (others => '0');
 
---   -- read a word
--- 	s_read <= '1';
---   s_write <= '0';
---   s_writedata <= (others => '0');
--- 	REPORT "WAITING";
---   wait until s_waitrequest = '0';
---   assert s_readdata = X"13121110";
---   s_read <= '0';
+  -- read a word
+  -- we load word at 0x10
+  -- bytes at 0x10, 0x11, 0x12, 0x13 will be loaded
+  -- data word is 0x13121110
+	s_read <= '1';
+  s_write <= '0';
+  s_writedata <= (others => '0');
+	REPORT "WAITING";
+  wait until s_waitrequest = '0';
+  assert s_readdata = X"13121110" severity error;
+  s_read <= '0';
 
---   -- read a word
---   wait for 4*clk_period;
---   tag <= (0 => '1', others => '0');
---   index <= (1 => '1', others => '0');
--- 	s_read <= '1';
---   s_write <= '0';
---   s_writedata <= (others => '0');
--- 	REPORT "WAITING";
---   wait until s_waitrequest = '0';
---   s_read <= '0';
+  wait for 4*clk_period;
+  -- load another word into cache
+  -- we load word at 0x220
+  -- bytes at 0x220, 0x221, 0x222, 0x223 will be loaded
+  -- data word is 0x23222120
+  tag <= (0 => '1', others => '0');
+  index <= (1 => '1', others => '0');
+	s_read <= '1';
+  s_write <= '0';
+  s_writedata <= (others => '0');
+	REPORT "WAITING";
+  wait until s_waitrequest = '0';
+  assert s_readdata = x"23222120" severity error;
+  s_read <= '0';
 
---   -- write to previous address
---   wait for 4*clk_period;
--- 	s_read <= '0';
---   s_write <= '1';
---   s_writedata <= (others => '1');
--- 	REPORT "WAITING";
---   wait until s_waitrequest = '0';
---   s_write <= '0';
 
---   -- attempt to trigger write back
---   wait for 4*clk_period;
---   tag <= (1 => '1', others => '0');
--- 	s_read <= '1';
---   s_write <= '0';
---   s_writedata <= (others => '0');
--- 	REPORT "WAITING";
---   wait until s_waitrequest = '0';
---   s_read <= '0';
+  -- write to previous address
+  -- write to address for block loaded into memory
+  wait for 4*clk_period;
+	s_read <= '0';
+  s_write <= '1';
+  s_writedata <= (others => '1');
+	REPORT "WAITING";
+  wait until s_waitrequest = '0';
+  s_write <= '0';
 
+  -- write to block that maps to same set
+  -- to trigger write back
+  wait for 4*clk_period;
+  tag <= (1 => '1', others => '0');
+	s_read <= '1';
+  s_write <= '0';
+  s_writedata <= (others => '0');
+	REPORT "WAITING";
+  wait until s_waitrequest = '0';
+  s_read <= '0';
+
+  wait for 6*clk_period;
   -- read and check whether write back
   -- data present in main memory
-  -- wait for 6*clk_period;
-  -- tag <= (0 => '1', others => '0');
-  -- index <= (1 => '1', others => '0');
-	-- s_read <= '1';
-  -- s_write <= '0';
-  -- s_writedata <= (others => '0');
-	-- REPORT "WAITING";
-  -- WAIT until s_waitrequest = '0';
-  -- ASSERT s_readdata = x"FFFFFFFF" SEVERITY ERROR;
-  -- s_read <= '0';
-                   
-	WAIT FOR clk_period;
-	-- Attempt to write to cache
-	
-  REPORT "INVALID WRITE MISS CLEAN and VALID READ HIT (CLEAN/DIRTY)";
-	s_addr <= "11111111111111111111111111111111";
-	s_write <= '1';
-	s_writedata <= x"0AAAAAAA";
-  REPORT "WAITING";
-	WAIT UNTIL s_waitrequest = '0';
+  tag <= (0 => '1', others => '0');
+  index <= (1 => '1', others => '0');
 	s_read <= '1';
-	s_write <= '0';
-  REPORT "WAITING";
-	WAIT UNTIL s_waitrequest = '0';
-	ASSERT s_readdata = x"03020100" REPORT "READ UNSUCCESSFUL" SEVERITY ERROR;
-	s_read <= '0';
-	s_write <= '0';
-	
-	WAIT for clk_period;
-	
-  REPORT "INVALID WRITE and READ CLEAN MISS";
-	s_addr <= "11111111101111011111111110111111";
-	s_read <= '0';
-	s_write <= '1';
-	WAIT UNTIL s_waitrequest = '0';
-	s_read <= '1';
-	s_write <= '0';
-  WAIT UNTIL s_waitrequest = '0';
-  ASSERT s_readdata = x"0AAAAAAA" REPORT "WRITE and READ UNSUCCESSFUL" SEVERITY ERROR; -- here
-	s_read <= '0';
-	s_write <= '0';
-	
-	WAIT for clk_period;
-
-  REPORT "INVALID READ CLEAN MISS";
-	s_addr <= "11111111101111011111111110111111";
-	s_read <= '1';
-	s_write <= '0';
-	WAIT UNTIL s_waitrequest = '0';
-  ASSERT s_readdata = x"0AAAAAAA" REPORT "READ UNSUCCESSFUL" SEVERITY ERROR; -- here
-	s_read <= '0';
-	s_write <= '0';
-	
-	WAIT for clk_period;
-
-  REPORT "VALID READ CLEAN MISS";
-	s_addr <= "00000000000000000000000000000000";
-	s_read <= '1';
-	s_write <= '0';
-	WAIT UNTIL s_waitrequest = '0';
-	s_addr <= "00000000000000000000000010000000";
-	s_read <= '1';
-	s_write <= '0';
-  WAIT UNTIL s_waitrequest = '0';
-  ASSERT s_readdata = x"0AAAAAAA" REPORT "READ UNSUCCESSFUL" SEVERITY ERROR; -- here
-	s_read <= '0';
-	s_write <= '0';
-
-	WAIT for clk_period;
-
-  REPORT "VALID WRITE CLEAN HIT";
-	s_addr <= "10000000000000000000000000000000";
-	s_read <= '1';
-	s_write <= '0';
-	WAIT UNTIL s_waitrequest = '0';
-	s_write <= '1';
-	s_read <= '0'; -- here
-	s_writedata <= x"0000000A";
-	WAIT UNTIL s_waitrequest = '0';
-	s_write <= '0';
-	s_read <= '1'; -- here
-	WAIT UNTIL s_waitrequest = '0';
-  ASSERT s_readdata = x"0000000A" REPORT "WRITE UNSUCCESSFUL" SEVERITY ERROR; -- here
-	s_write <= '0';
-	s_read <= '0';
-
-	WAIT for clk_period;
-		
-  REPORT "VALID WRITE CLEAN MISS";
-	s_addr <= "11100000000000000000000000000000";
-	s_read <= '1';
-	s_write <= '0';
-	WAIT UNTIL s_waitrequest = '0';
-	s_addr <= "11100000000000000000001000000000";
-	s_write <= '1';
-	s_read <= '0';
-	s_writedata <= x"0AAAAAAA";
-	WAIT UNTIL s_waitrequest = '0';
-  ASSERT s_readdata = x"0AAAAAAA" REPORT "WRITE UNSUCCESSFUL" SEVERITY ERROR; -- here
-	s_write <= '0';
-	s_read <= '0';
-	
-	WAIT for clk_period;
-	
-  REPORT "VALID WRITE DIRTY HIT";
-	s_addr <= "11000000000000000000000000000000";
-	s_write <= '1';
-	s_read <= '0';
-	s_writedata <= x"0000000B";
-	WAIT UNTIL s_waitrequest = '0';
-	s_addr <= "11000000000000000000000000000000";
-	s_write <='0';
-	WAIT for clk_period;
-	s_write <= '1';
-	s_read <= '0';
-	s_writedata <= x"0000000C";
-	WAIT UNTIL s_waitrequest = '0';
-	ASSERT s_readdata = x"0000000C" REPORT "WRITE UNSUCCESSFUL" SEVERITY ERROR; -- here
-	s_write <= '0';
-	s_read <= '0';
-	
-	WAIT for clk_period;
-	
-  REPORT "VALID WRITE MISS DIRTY";
-	WAIT FOR clk_period;
-	s_addr <= "11111100000000000000000000000000";
-	s_write <= '1';
-	s_writedata <= x"04030201";
-	WAIT UNTIL s_waitrequest = '0';
-	s_addr <= "00000000000000000000000100000000";
-	s_write <= '1';
-	s_writedata <= x"000000BA";
-	WAIT UNTIL s_waitrequest = '0';
-	s_read <= '1';
-	s_write <= '0';
-	WAIT UNTIL s_waitrequest = '0';
-	ASSERT s_readdata = x"000000BA" REPORT "WRITE UNSUCCESSFUL" SEVERITY ERROR;
-	s_read <= '0';
-	s_write <= '0';
-
-	WAIT for clk_period;
-
-  REPORT "VALID READ MISS DIRTY";
-	WAIT FOR clk_period;
-	s_addr <= "11111110000000000000000000000000";
-	s_write <= '1';
-	s_writedata <= x"04030201";
-	WAIT UNTIL s_waitrequest = '0';
-	s_addr <= "00000000000000000000100000000000";
-	s_write <= '0';
-	s_read <= '1';
-	WAIT UNTIL s_waitrequest = '0';
-	ASSERT s_readdata = x"04030201" REPORT "WRITE UNSUCCESSFUL" SEVERITY ERROR;
+  s_write <= '0';
+  s_writedata <= (others => '0');
+	REPORT "WAITING";
+  wait until s_waitrequest = '0';
+  assert s_readdata = x"FFFFFFFF" severity error;
   s_read <= '0';
-	s_write <= '0';
 
-WAIT;
+  wait for 4*clk_period;
+  -- Attempt to read misaligned word
+  -- cache should ignore 2 lsb bit of s_addr
+  -- aka auto-align block request
+  -- since address is 0x7FFF
+  -- data loaded from 0x7FFC, 0x7FFD, 0x7FFE, 0x7FFF
+  -- loaded word should be 0xFFFEFDFC
+  tag <= (others => '1');
+  index <= (others => '1');
+  word_offest <= (others => '1');
+  byte_offset <= (others => '1');
+	s_read <= '1';
+  s_write <= '0';
+  s_writedata <= (others => '0');
+	REPORT "WAITING";
+  wait until s_waitrequest = '0';
+  assert s_readdata = x"FFFEFDFC" severity error;
+  s_read <= '0';
+
+
+  wait for 4*clk_period;
+  -- attempt to trigger write allocate policy
+  -- write to block not present in memory
+  -- address is 0x0800
+  -- data loaded from 0x0800, 0x0801, 0x0802, 0x8003
+  -- loaded word is 03020100
+  tag <= (2 => '1', others => '0');
+  index <= (others => '0');
+  word_offest <= (others => '0');
+  byte_offset <= (others => '0');
+	s_read <= '0';
+  s_write <= '1';
+  s_writedata <= (others => '1');
+	REPORT "WAITING";
+  wait until s_waitrequest = '0';
+  s_write <= '0';
+
+
+	WAIT;
 	
 end process;
 	
