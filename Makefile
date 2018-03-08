@@ -1,9 +1,10 @@
 SRCDIR=./src
 CACHEDIR=$(SRCDIR)/Cache
+CPUDIR=$(SRCDIR)/CPU
 BUILDDIR=./build
 TESTDIR=./test
 
-processor: cache
+processor: cache cpu
 
 all: processor
 
@@ -35,3 +36,14 @@ cache_test: cache test_init
 	ghdl -a $(CACHEDIR)/cache_tb.vhd
 	ghdl -e -o $(TESTDIR)/cache_tb cache_tb
 	cd $(TESTDIR) && ghdl -r cache_tb --vcd=cache_tb.vcd
+
+cpu: register
+
+register: init
+	ghdl -a --ieee=synopsys $(CPUDIR)/registerfile.vhd
+	ghdl -e --ieee=synopsys -o $(BUILDDIR)/registerfile registerfile
+
+register_test: register test_init
+	ghdl -a --ieee=synopsys $(CPUDIR)/registerfile_tb.vhd
+	ghdl -e --ieee=synopsys -o $(TESTDIR)/registerfile_tb registerfile_tb
+	cd $(TESTDIR) && ghdl -r registerfile_tb --vcd=registerfile_tb.vcd
