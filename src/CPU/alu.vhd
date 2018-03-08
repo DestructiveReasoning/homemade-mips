@@ -37,7 +37,7 @@ BEGIN
                 end if;
                 output <= std_logic_vector(to_signed(to_integer(signed(a)) / to_integer(signed(b)), 32));
             when "00100" => -- set less than (includes slt and slti)
-                if(to_integer(unsigned(a)) < to_integer(unsigned(b))) then
+                if(to_integer(signed(a)) < to_integer(signed(b))) then
                     output <= X"00000001";
                 else
                     output <= X"00000000";

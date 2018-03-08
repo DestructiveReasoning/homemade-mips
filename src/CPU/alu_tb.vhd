@@ -43,50 +43,87 @@ BEGIN
 		b <= std_logic_vector(to_signed(50, 32));
 		WAIT FOR 1 ns;
 		ASSERT output = X"00000040" REPORT "Addition error!" SEVERITY ERROR;
-		funct <= "00001";
+		funct <= "00001"; -- sub
 		WAIT FOR 1 ns;
 		ASSERT output = std_logic_vector(to_signed(-36,32)) REPORT "Subtraction error!" SEVERITY ERROR;
-		funct <= "00000";
+		funct <= "00000"; -- add
 		b <= std_logic_vector(to_signed(-50,32));
 		WAIT FOR 1 ns;
 		ASSERT output = std_logic_vector(to_signed(-36,32)) REPORT "Addition with negative input error!" SEVERITY ERROR;
-		funct <= "00001";
+		funct <= "00001"; -- sub
 		WAIT FOR 1 ns;
 		ASSERT output = X"00000040" REPORT "Subtracting negatives error!" SEVERITY ERROR;
-		funct <= "00010";
+		funct <= "00010"; -- mult
 		a <= std_logic_vector(to_signed(-3, 32));
 		b <= std_logic_vector(to_signed(-5, 32));
 		WAIT FOR 1 ns;
 		ASSERT output = X"0000000F" REPORT "Multiplying two negatives error!" SEVERITY ERROR;
-		funct <= "01001";
+		funct <= "01001"; -- mflo
 		WAIT FOR 1 ns;
 		ASSERT output = X"0000000F" REPORT "mflo error!" SEVERITY ERROR;
-		funct <= "01000";
+		funct <= "01000"; -- mfhi
 		WAIT FOR 1 ns;
 		ASSERT output = X"00000000" REPORT "mfhi corrupted!" SEVERITY ERROR;
-		funct <= "00010";
+		funct <= "00010"; -- mult
 		a <= X"08000000";
 		b <= X"00000080";
 		WAIT FOR 1 ns;
 		ASSERT output = X"00000000" REPORT "Large number multiplication issue!" SEVERITY ERROR;
-		funct <= "01000";
+		funct <= "01000"; -- mfhi
 		WAIT FOR 1 ns;
 		ASSERT output = X"00000004" REPORT "Large number mfhi issue!" SEVERITY ERROR;
-		funct <= "00011";
+		funct <= "00011"; -- div
 		a <= X"00000040"; -- 64
 		b <= X"00000020"; -- 32
 		WAIT FOR 1 ns;
 		ASSERT output = X"00000002" REPORT "Division error!" SEVERITY ERROR;
-		funct <= "01000";
+		funct <= "01000"; -- mfhi (get mod)
 		WAIT FOR 1 ns;
 		ASSERT output = X"00000000" REPORT "Whole number modulo error!" SEVERITY ERROR;
-		funct <= "00011";
+		funct <= "00011"; -- div
 		b <= X"0000000A";
 		WAIT FOR 1 ns;
 		ASSERT output = X"00000006" REPORT "Fractional division error!" SEVERITY ERROR;
-		funct <= "01000";
+		funct <= "01000"; -- mfhi (get mod)
 		WAIT FOR 1 ns;
 		ASSERT output = X"00000004" REPORT "Fractional division modulo error!" SEVERITY ERROR;
+		funct <= "00100"; -- slt
+		a <= X"00000005";
+		b <= X"00000002";
+		WAIT FOR 1 ns;
+		ASSERT output = X"00000000" REPORT "SLT returning 1 when not LT!" SEVERITY ERROR;
+		b <= X"00000010";
+		WAIT FOR 1 ns;
+		ASSERT output = X"00000001" REPORT "SLT returning 0 when LT!" SEVERITY ERROR;
+		funct <= "01010"; -- lui
+		b <= X"0000DEAF";
+		WAIT FOR 1 ns;
+		ASSERT output = X"DEAF0000" REPORT "LUI not working!" SEVERITY ERROR;
+		funct <= "01011"; -- sll
+		a <= X"00FACE00";
+		b <= X"00000004";
+		WAIT FOR 1 ns;
+		ASSERT output = X"0FACE000" REPORT "SLL error!" SEVERITY ERROR;
+		a <= X"0FACE000";
+		b <= X"00000008";
+		WAIT FOR 1 ns;
+		ASSERT output = X"ACE00000" REPORT "SLL with overflow error!" SEVERITY ERROR;
+		funct <= "01100"; -- srl
+		WAIT FOR 1 ns;
+		ASSERT output = X"000FACE0" REPORT "SRL error!" SEVERITY ERROR;
+		a <= X"000FACE0";
+		WAIT FOR 1 ns;
+		ASSERT output = X"00000FAC" REPORT "SRL with overflow error!" SEVERITY ERROR;
+		funct <= "01101"; -- sra
+		WAIT FOR 1 ns;
+		ASSERT output = X"00000FAC" REPORT "SRA error!" SEVERITY ERROR;
+		a <= X"80FACE00";
+		WAIT FOR 1 ns;
+		ASSERT output = X"FF80FACE" REPORT "SRA negative error!" SEVERITY ERROR;
+		a <= std_logic_vector(to_signed(-16,32));
+		b <= X"00000003";
+		WAIT FOR 1 ns;
+		ASSERT output = std_logic_vector(to_signed(-2,32));
 		WAIT FOR 1 ns;
 		finished <= '1';
 		WAIT;
