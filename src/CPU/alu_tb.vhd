@@ -72,6 +72,21 @@ BEGIN
 		funct <= "01000";
 		WAIT FOR 1 ns;
 		ASSERT output = X"00000004" REPORT "Large number mfhi issue!" SEVERITY ERROR;
+		funct <= "00011";
+		a <= X"00000040"; -- 64
+		b <= X"00000020"; -- 32
+		WAIT FOR 1 ns;
+		ASSERT output = X"00000002" REPORT "Division error!" SEVERITY ERROR;
+		funct <= "01000";
+		WAIT FOR 1 ns;
+		ASSERT output = X"00000000" REPORT "Whole number modulo error!" SEVERITY ERROR;
+		funct <= "00011";
+		b <= X"0000000A";
+		WAIT FOR 1 ns;
+		ASSERT output = X"00000006" REPORT "Fractional division error!" SEVERITY ERROR;
+		funct <= "01000";
+		WAIT FOR 1 ns;
+		ASSERT output = X"00000004" REPORT "Fractional division modulo error!" SEVERITY ERROR;
 		WAIT FOR 1 ns;
 		finished <= '1';
 		WAIT;
