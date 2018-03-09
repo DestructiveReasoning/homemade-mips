@@ -69,4 +69,4 @@ misc: init
 misc_test: misc test_init
 	ghdl -a $(MISCDIR)/busmux41_tb.vhd
 	ghdl -e -o $(TESTDIR)/busmux41_tb busmux41_tb
-	cd $(TESTDIR) && ghdl -r busmux41_tb --vcd=busmux31_tb.vcd
+	cd $(TESTDIR) && ghdl -r busmux41_tb --vcd=busmux41_tb.vcd
