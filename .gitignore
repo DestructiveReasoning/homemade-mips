@@ -1,6 +1,7 @@
-*.o
+**/*.o
 *.lst
 *.cf
 *.aux
 *.log
 *.out
+**/*.swp
