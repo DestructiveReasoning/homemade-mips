@@ -76,12 +76,12 @@ BEGIN
                 end if;
             when "01110" => -- beq and bne (basically, computes new address when branch is taken)
                 -- a stores PC+4, b stores branch distance
-                output <= std_logic_vector(to_unsigned(to_integer(unsigned(a)) + 4 * to_integer(unsigned(b)), 32));
+                output <= std_logic_vector(to_signed(to_integer(signed(a)) + to_integer(signed(b)*4), 32));
             when "01111" => -- jump (j and jal)
                 -- a stores PC+4, b stores jump address
                 -- j-type instructions store 26-bit pseudo-addresses
                 -- to convert to 32 bit address, assume 4 MSB's are equivalent to PC+4's, and 2 LSB's are 0
-                output <= a(31 downto 28) & b & "00";
+                output <= a(31 downto 28) & b(27 downto 2) & "00";
             when "10000" => -- jump to register value
                 output <= a;
             when others =>

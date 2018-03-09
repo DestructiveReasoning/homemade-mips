@@ -124,6 +124,20 @@ BEGIN
 		b <= X"00000003";
 		WAIT FOR 1 ns;
 		ASSERT output = std_logic_vector(to_signed(-2,32));
+		funct <= "01110"; -- bne/beq
+		a <= X"FFFF0000";
+		b <= X"00000001";
+		WAIT FOR 1 ns;
+		ASSERT output = X"FFFF0004" REPORT "Branch address error!" SEVERITY ERROR;
+		funct <= "01111"; -- j/jal
+		a <= X"D0000000";
+		b <= X"0EADBEE5";
+		WAIT FOR 1 ns;
+		ASSERT output = X"DEADBEE4" REPORT "Jump address calculation error!";
+		funct <= "10000"; -- jr
+		a <= X"48151623";
+		WAIT FOR 1 ns;
+		ASSERT output = X"48151623" REPORT "JR error!";
 		WAIT FOR 1 ns;
 		finished <= '1';
 		WAIT;
