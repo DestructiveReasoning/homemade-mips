@@ -51,6 +51,8 @@ register_test: register test_init
 alu: init
 	ghdl -a --ieee=synopsys $(CPUDIR)/alu.vhd
 	ghdl -e --ieee=synopsys -o $(BUILDDIR)/alu alu
+	ghdl -a --ieee=synopsys $(CPUDIR)/alufunct_encoder.vhd
+	ghdl -e --ieee=synopsys -o $(BUILDDIR)/alufunct_encoder alufunct_encoder
 	
 alu_test: alu test_init
 	ghdl -a --ieee=synopsys $(CPUDIR)/alu_tb.vhd

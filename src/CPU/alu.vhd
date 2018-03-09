@@ -48,6 +48,8 @@ BEGIN
                 output <= a OR b;
             when "00111" => -- xor (includes xor, xori)
                 output <= a xor b;
+            when "10001" => -- nor
+                output <= a nor b;
             when "01000" => -- mfhi
                 output <= wide_out(63 downto 32);
             when "01001" => -- mflo
