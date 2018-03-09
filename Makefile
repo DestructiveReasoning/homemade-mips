@@ -1,10 +1,11 @@
 SRCDIR=./src
 CACHEDIR=$(SRCDIR)/Cache
 CPUDIR=$(SRCDIR)/CPU
+MISCDIR=$(SRCDIR)/misc
 BUILDDIR=./build
 TESTDIR=./test
 
-processor: cache cpu
+processor: cache misc cpu
 
 all: processor
 
@@ -58,3 +59,14 @@ alu_test: alu test_init
 	ghdl -a --ieee=synopsys $(CPUDIR)/alu_tb.vhd
 	ghdl -e --ieee=synopsys -o $(TESTDIR)/alu_tb alu_tb
 	cd $(TESTDIR) && ghdl -r alu_tb --vcd=alu_tb.vcd
+
+misc: init
+	ghdl -a $(MISCDIR)/busmux21.vhd
+	ghdl -e -o $(BUILDDIR)/busmux21 busmux21
+	ghdl -a $(MISCDIR)/busmux41.vhd
+	ghdl -e -o $(BUILDDIR)/busmux41 busmux41
+
+misc_test: misc test_init
+	ghdl -a $(MISCDIR)/busmux41_tb.vhd
+	ghdl -e -o $(TESTDIR)/busmux41_tb busmux41_tb
+	cd $(TESTDIR) && ghdl -r busmux41_tb --vcd=busmux31_tb.vcd
