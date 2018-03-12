@@ -65,8 +65,13 @@ misc: init
 	ghdl -e -o $(BUILDDIR)/busmux21 busmux21
 	ghdl -a $(MISCDIR)/busmux41.vhd
 	ghdl -e -o $(BUILDDIR)/busmux41 busmux41
+	ghdl -a $(MISCDIR)/signextender.vhd
+	ghdl -e -o $(BUILDDIR)/signextender signextender
 
 misc_test: misc test_init
 	ghdl -a $(MISCDIR)/busmux41_tb.vhd
 	ghdl -e -o $(TESTDIR)/busmux41_tb busmux41_tb
 	cd $(TESTDIR) && ghdl -r busmux41_tb --vcd=busmux41_tb.vcd
+	ghdl -a $(MISCDIR)/signextender_tb.vhd
+	ghdl -e -o $(TESTDIR)/signextender_tb signextender_tb
+	cd $(TESTDIR) && ghdl -r signextender_tb --vcd=signextender_tb.vcd
