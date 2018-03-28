@@ -49,6 +49,8 @@ stages: init
 	ghdl -e --ieee=synopsys -o $(BUILDDIR)/if_stage if_stage
 	ghdl -a --ieee=synopsys $(CPUDIR)/id_stage.vhd
 	ghdl -e --ieee=synopsys -o $(BUILDDIR)/id_stage id_stage
+	ghdl -a --ieee=synopsys $(CPUDIR)/mem_stage.vhd
+	ghdl -e --ieee=synopsys -o $(BUILDDIR)/mem_stage mem_stage
 
 register: init
 	ghdl -a --ieee=synopsys $(CPUDIR)/registerfile.vhd
