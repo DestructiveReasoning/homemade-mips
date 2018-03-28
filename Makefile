@@ -38,7 +38,15 @@ cache_test: cache test_init
 	ghdl -e -o $(TESTDIR)/cache_tb cache_tb
 	cd $(TESTDIR) && ghdl -r cache_tb --vcd=cache_tb.vcd
 
-cpu: register alu
+cpu: register alu stages
+
+stages: init
+	ghdl -a --ieee=synopsys $(CPUDIR)/pipe_reg.vhd
+	ghdl -e --ieee=synopsys -o $(BUILDDIR)/pipe_reg pipe_reg
+	ghdl -a --ieee=synopsys $(CPUDIR)/if_stage.vhd
+	ghdl -e --ieee=synopsys -o $(BUILDDIR)/if_stage if_stage
+	ghdl -a --ieee=synopsys $(CPUDIR)/id_stage.vhd
+	ghdl -e --ieee=synopsys -o $(BUILDDIR)/id_stage id_stage
 
 register: init
 	ghdl -a --ieee=synopsys $(CPUDIR)/registerfile.vhd
