@@ -24,9 +24,9 @@ entity pipe_reg is
 	PORT (
 		clock: IN STD_LOGIC;
 		reset: IN STD_LOGIC;
-		instr, newpc, data_a, data_b									: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+		instr, newpc, data_a, data_b, imm								: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
 		memread, memwrite, alusrc, pcsrc, regwrite, regdst, memtoreg	: IN STD_LOGIC;
-		q_instr, q_newpc, q_data_a, q_data_b									: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
+		q_instr, q_newpc, q_data_a, q_data_b, q_imm						: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
 		q_memread, q_memwrite, q_alusrc, q_pcsrc, q_regwrite, q_regdst, q_memtoreg	: OUT STD_LOGIC
 	);
 END pipe_reg;
@@ -40,6 +40,7 @@ BEGIN
 			q_newpc <= (others => '0');
 			q_data_a <= (others => '0');
 			q_data_b <= (others => '0');
+			q_imm <= (others => '0');
 			q_memread <= '0';
 			q_memwrite <= '0';
 			q_alusrc <= '0';
@@ -52,6 +53,7 @@ BEGIN
 			q_newpc <= newpc;
 			q_data_a <= data_a; 
 			q_data_b <= data_b; 
+			q_imm <= imm; 
 			q_memread <= memread; 
 			q_memwrite <= memwrite; 
 			q_alusrc <= alusrc; 

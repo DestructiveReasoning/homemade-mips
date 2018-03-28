@@ -4,13 +4,13 @@ use ieee.numeric_std.all;
 
 ENTITY id_stage IS
 	PORT (
-		newpc, instr:	IN STD_LOGIC_VECTOR(31 downto 0);
+		newpc, instr: IN STD_LOGIC_VECTOR(31 downto 0);
 		clock: IN STD_LOGIC;
 		s_write_en: IN STD_LOGIC;
 		s_write_data: IN STD_LOGIC_VECTOR(31 downto 0);
 		s_rd: IN STD_LOGIC_VECTOR(4 downto 0);
-		q_instr, q_newpc, q_data_a, q_data_b, q_imm									: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
-		q_memread, q_memwrite, q_alusrc, q_pcsrc, q_regwrite, q_regdst, q_memtoreg	: OUT STD_LOGIC;
+		q_instr, q_newpc, q_data_a, q_data_b, q_imm: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
+		q_memread, q_memwrite, q_alusrc, q_pcsrc, q_regwrite, q_regdst, q_memtoreg: OUT STD_LOGIC;
 		q_new_addr: OUT STD_LOGIC_VECTOR(31 downto 0)
 	);
 END id_stage;
