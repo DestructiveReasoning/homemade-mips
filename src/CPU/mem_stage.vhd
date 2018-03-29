@@ -13,7 +13,6 @@ entity mem_stage is
 END mem_stage;
 
 ARCHITECTURE mem OF mem_stage IS
--- TODO: Instantiate memory
 --Declare the memory component:
 
     COMPONENT memory IS
