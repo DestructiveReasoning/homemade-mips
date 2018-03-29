@@ -2,24 +2,24 @@
     .text
 
 main:
-        addi $r5, $r0, #16
+        addi $5, $0, 16
         jal addone
-        addi $r5, $r5, #-1
+        addi $5, $5, -1
         jal bs
-        addi $r6, $r0, #1
+        addi $6, $0, 1
         jal inter
-ret:    add $r5, $r5, $r6
+ret:    add $5, $5, $6
 
 addone:
-        addi $r5, $r5, #1
-        jr $ra
+        addi $5, $5, 1
+        jr $31
 
 bs:
-        jr $ra
+        jr $31
 
 inter:
         jal end
         j ret
 
 end:
-        jr $ra
+        jr $31
