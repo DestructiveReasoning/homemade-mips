@@ -222,7 +222,7 @@ BEGIN
         ex_instr_out, ex_newpc_out, mem_dataa_in, ex_dataa_out, ex_imm_out,
         ex_ctrlsigs_out(memread), ex_ctrlsigs_out(memwrite), ex_ctrlsigs_out(alusrc),
         ex_ctrlsigs_out(pcsrc), ex_ctrlsigs_out(regwrite), ex_ctrlsigs_out(regdst), ex_ctrlsigs_out(memtoreg),
-        mem_instr_out, mem_newpc_out, mem_dataa_in, mem_dataa_out, mem_imm_out,
+        mem_instr_out, mem_newpc_out, mem_dataa_out, mem_datab_out, mem_imm_out,
         mem_ctrlsigs_out(memread), mem_ctrlsigs_out(memwrite), mem_ctrlsigs_out(alusrc),
         mem_ctrlsigs_out(pcsrc),mem_ctrlsigs_out(regwrite),mem_ctrlsigs_out(regdst),mem_ctrlsigs_out(memtoreg)
     );
