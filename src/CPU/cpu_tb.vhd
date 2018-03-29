@@ -96,6 +96,9 @@ ARCHITECTURE mips OF CPU_TB IS
 
     SIGNAL wb_data: STD_LOGIC_VECTOR(31 downto 0);
 
+    -- forwarding intermediate signals
+    signal mem_wb_forward_data : std_logic_vector(31 downto 0); -- forwarding lw in wb to sw in mem
+
 BEGIN
     -- STALLING LOGIC
     -- This may need some work
@@ -206,13 +209,15 @@ BEGIN
         end if;
     END PROCESS;
 
+    mem_wb_forward_data <= wb_data when (mem_instr_out(15 downto 11) = ex_instr_out(15 downto 11) and mem_ctrlsigs_out(regwrite) = '1') else mem_dataa_in;
     memory: mem_stage
     PORT MAP (
         clock,
         ex_dataa_out,
         ex_ctrlsigs_out(memread), ex_ctrlsigs_out(memwrite),
         ex_datab_out,
-        mem_dataa_in
+        -- forwarding data from lw to sw
+        mem_wb_forward_data
     );
 
     mem_wb: pipe_reg
