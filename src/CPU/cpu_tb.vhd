@@ -189,6 +189,8 @@ BEGIN
 
       -- register numbers in wb stage
       variable wb_rd : std_logic_vector(4 downto 0) := mem_instr_out(15 downto 11);
+
+      variable post_forwarding_datab_pre_alusrc : std_logic_vector(4 downto 0);
     begin
 
       ex_rt := id_instr_out(20 downto 16);
@@ -212,6 +214,9 @@ BEGIN
         if(wb_rd = ex_rt) then ex_mem_forward_datab <= wb_data;
         end if;
       end if;
+
+      post_forwarding_datab_pre_alusrc := ex_mem_forward_datab;
+      ex_datab_in <= post_forwarding_datab_pre_alusrc;
 
       -- immediate selector
       if(id_ctrlsigs_out(alusrc) = '1') then
