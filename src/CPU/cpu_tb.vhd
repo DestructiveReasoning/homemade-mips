@@ -96,6 +96,11 @@ ARCHITECTURE mips OF CPU_TB IS
 
     SIGNAL wb_data: STD_LOGIC_VECTOR(31 downto 0);
 
+    -- forwarding intermediate signals
+    signal mem_wb_forward_data : std_logic_vector(31 downto 0); -- forwarding lw in wb to sw in mem
+    signal ex_mem_forward_dataa : std_logic_vector(31 downto 0); -- forwarding data produced by alu to next instruction
+    signal ex_mem_forward_datab : std_logic_vector(31 downto 0); -- forwarding data produced by alu to next instruction
+
 BEGIN
     -- STALLING LOGIC
     -- This may need some work
@@ -174,11 +179,58 @@ BEGIN
         id_ctrlsigs_out(pcsrc), id_ctrlsigs_out(regwrite), id_ctrlsigs_out(regdst), id_ctrlsigs_out(memtoreg)
     );
 
+    to_ex_forwarding: process(id_instr_out, ex_instr_out, mem_instr_out)
+      -- register numbers in ex stage
+      variable ex_rt : std_logic_vector(4 downto 0) := id_instr_out(20 downto 16);
+      variable ex_rs : std_logic_vector(4 downto 0) := id_instr_out(25 downto 21);
+
+      -- register numbers in mem stage
+      variable mem_rd : std_logic_vector(4 downto 0) := ex_instr_out(15 downto 11);
+
+      -- register numbers in wb stage
+      variable wb_rd : std_logic_vector(4 downto 0) := mem_instr_out(15 downto 11);
+
+      variable post_forwarding_datab_pre_alusrc : std_logic_vector(4 downto 0);
+    begin
+
+      ex_rt := id_instr_out(20 downto 16);
+      ex_rs := id_instr_out(25 downto 21);
+      mem_rd := ex_instr_out(15 downto 11);
+      wb_rd := mem_instr_out(15 downto 11);
+
+      ex_mem_forward_dataa <= id_dataa_out;
+      ex_mem_forward_datab <= id_datab_out;
+
+      -- forwarding from mem
+      if(ex_ctrlsigs_out(regwrite) = '1') then
+        if(mem_rd = ex_rs) then ex_mem_forward_dataa <= ex_dataa_out;
+        end if;
+        if(mem_rd = ex_rt) then ex_mem_forward_datab <= ex_dataa_out;
+        end if;
+      -- forwarding from wb
+      elsif mem_ctrlsigs_out(regwrite) = '1' then
+        if(wb_rd = ex_rs) then ex_mem_forward_dataa <= wb_data;
+        end if;
+        if(wb_rd = ex_rt) then ex_mem_forward_datab <= wb_data;
+        end if;
+      end if;
+
+      post_forwarding_datab_pre_alusrc := ex_mem_forward_datab;
+      ex_datab_in <= post_forwarding_datab_pre_alusrc;
+
+      -- immediate selector
+      if(id_ctrlsigs_out(alusrc) = '1') then
+        ex_mem_forward_datab <= id_imm_out;
+      end if;
+    end process;
+
     arithmetic: alu
     PORT MAP (
         clock,
-        id_dataa_out, --TODO implement forwarding
-        id_datab_out, --TODO implement forwarding
+       -- id_dataa_out, --TODO implement forwarding
+       -- id_datab_out, --TODO implement forwarding
+        ex_mem_forward_dataa,
+        ex_mem_forward_datab,
         id_instr_out(30 downto 26), -- alu function encoding section of instr
         ex_alures
     );
@@ -206,13 +258,15 @@ BEGIN
         end if;
     END PROCESS;
 
+    mem_wb_forward_data <= wb_data when (mem_instr_out(15 downto 11) = ex_instr_out(15 downto 11) and mem_ctrlsigs_out(regwrite) = '1') else mem_dataa_in;
     memory: mem_stage
     PORT MAP (
         clock,
         ex_dataa_out,
         ex_ctrlsigs_out(memread), ex_ctrlsigs_out(memwrite),
         ex_datab_out,
-        mem_dataa_in
+        -- forwarding data from lw to sw
+        mem_wb_forward_data
     );
 
     mem_wb: pipe_reg
