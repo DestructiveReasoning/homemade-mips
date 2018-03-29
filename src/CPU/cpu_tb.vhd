@@ -107,8 +107,8 @@ BEGIN
     BEGIN
         stall <= '0';
         id_rt := id_instr_out(20 downto 16);
-        if_rt := id_instr_out(20 downto 16);
-        if_rs := id_instr_out(25 downto 21);
+        if_rt := if_instr_out(20 downto 16);
+        if_rs := if_instr_out(25 downto 21);
         -- no need to stall if the user tries loading to $r0 for some reason
         if(id_ctrlsigs_out(memread) = '1' and (not id_rt = "00000")) then
             -- if decoded instruction is lw,
@@ -164,7 +164,7 @@ BEGIN
     id_ex: pipe_reg
     PORT MAP (
         clock,
-        '0', -- the ID/EX register is never reset
+		stall, -- Clear out the id/ex (turn instruction into nop) when stalling
         -- pull all pipeline register contents from the decoding from the ID stage
         id_instr_in, id_newpc_in, id_dataa_in, id_datab_in, id_imm_in,
         id_ctrlsigs_in(memread), id_ctrlsigs_in(memwrite), id_ctrlsigs_in(alusrc),
@@ -186,7 +186,7 @@ BEGIN
     ex_mem: pipe_reg
     PORT MAP (
         clock,
-        stall, --TODO definitely need to double-check the stalling logic
+		'0',
         -- place ALU output in data A section
         ex_instr_in, id_newpc_out, ex_alures, id_datab_out, id_imm_out,
         id_ctrlsigs_out(memread), id_ctrlsigs_out(memwrite), id_ctrlsigs_out(alusrc),
