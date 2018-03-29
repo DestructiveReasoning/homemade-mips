@@ -14,6 +14,9 @@ END mem_stage;
 
 ARCHITECTURE memory OF mem_stage IS
     -- TODO: Instantiate memory
+    
+    signal next_data, next_alu, next_address: STD_LOGIC_VECTOR(31 downto 0);
+    
 BEGIN
     process(clock)
     BEGIN
