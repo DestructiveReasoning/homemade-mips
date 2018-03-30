@@ -2,12 +2,15 @@
 LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 USE ieee.numeric_std.all;
+use ieee.std_logic_textio.all;
+use std.textio.all;
 
 ENTITY memory IS
 	GENERIC(
 		ram_size : INTEGER := 32768;
 		mem_delay : time := 0 ns;
-		clock_period : time := 1 ns
+		clock_period : time := 1 ns;
+    init_file : string := ""
 	);
 	PORT (
 		clock: IN STD_LOGIC;
@@ -28,13 +31,28 @@ ARCHITECTURE rtl OF memory IS
 	SIGNAL read_waitreq_reg: STD_LOGIC := '1';
 BEGIN
 	--This is the main section of the SRAM model
+  
 	mem_process: PROCESS (clock)
+    variable no_load : STD_LOGIC := '0';
+    file instr_file : text is in init_file;
+    variable instr_line : line;
+    variable instr : STD_LOGIC_VECTOR(31 downto 0);
 	BEGIN
-		--This is a cheap trick to initialize the SRAM in simulation
-		IF(now < 1 ps)THEN
-			For i in 0 to ram_size-1 LOOP
-				ram_block(i) <= std_logic_vector(to_unsigned(i,32));
-			END LOOP;
+		-- Initialize the SRAM in simulation
+		IF (no_load = '0') THEN
+      if(init_file /= "") then
+        for i in 0 to ram_size-1 loop
+          readline (instr_file, instr_line);
+          read(instr_line, instr);
+          ram_block(i) <= instr;
+        end loop;
+        file_close(instr_file);
+      else
+        for i in 0 to ram_size-1 loop
+          ram_block(i) <= (others => '0');
+        end loop;
+      end if;
+      no_load := '1';
 		end if;
 
 		--This is the actual synthesizable SRAM block
