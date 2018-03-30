@@ -126,7 +126,7 @@ BEGIN
         if_rt := if_instr_out(20 downto 16);
         if_rs := if_instr_out(25 downto 21);
         -- no need to stall if the user tries loading to $r0 for some reason
-        if(id_ctrlsigs_out(memread) = '1' and (not id_rt = "00000")) then
+        if(id_ctrlsigs_out(memread) = '1') then
             -- if decoded instruction is lw,
             -- and the target register for lw is a register that will be consumed in the instr in IF, 
             -- then stall
@@ -195,7 +195,7 @@ BEGIN
 
 
     ex_mem_forward_dataa <= ex_dataa_out when(ex_forward_a = 2) else wb_data when(ex_forward_a = 1) else id_dataa_out;
-    ex_mem_forward_datab <= ex_datab_out when(ex_forward_b = 2) else wb_data when(ex_forward_b = 1) else id_imm_out when(id_ctrlsigs_out(alusrc) = '1') else id_datab_out;
+    ex_mem_forward_datab <= id_imm_out when(id_ctrlsigs_out(alusrc) = '1') else ex_datab_out when(ex_forward_b = 2) else wb_data when(ex_forward_b = 1) else id_datab_out;
     ex_forward_prealusrc <= ex_datab_out when(ex_forward_b = 2) else mem_datab_out when(ex_forward_b = 1) else id_datab_out;
      -- if(id_ctrlsigs_out(alusrc) = '1') then
      --   ex_mem_forward_datab <= id_imm_out;
