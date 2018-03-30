@@ -35,7 +35,7 @@ BEGIN
 
             if(write_en = '1') then
                 if(rd = "00000") then
-                    NULL; -- avoid writing to $0 ($0 should be hardwired to 0)
+					registers(0) <= (others => '0');
                 else
                     registers(to_integer(unsigned(rd))) <= write_data;
                 end if;
