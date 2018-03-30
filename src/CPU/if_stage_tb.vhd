@@ -91,7 +91,7 @@ BEGIN
       wait for clock_period;
       for i in 0 to 10 loop
         assert q_instr = init_rom(i);
-        wait for 2*clock_period;
+        wait for 1*clock_period;
       end loop;
       wait;
     end process;
