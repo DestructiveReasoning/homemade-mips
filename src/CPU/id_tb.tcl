@@ -9,13 +9,13 @@ vlib work
 vcom id_stage.vhd
 vcom id_tb.vhd
 vcom registerfile.vhd
-vcom ALUFunct_Encoder.vhd
+vcom alufunct_encoder.vhd
 
 ;# Start simulation
 vsim id_tb
 
 ;# Generate a clock with 1ns period
-force -deposit clock 0 0 ns, 1 0.5 ns -repeat 1 ns
+force -deposit clock 1 0 ns, 0 0.5 ns -repeat 1 ns
 
 ;# Add the waves
 AddWaves

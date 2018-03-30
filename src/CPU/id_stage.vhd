@@ -104,6 +104,10 @@ BEGIN
 		if(op = "000000") then
 			q_regdst <= '1';
 			q_alusrc <= '1';
+			if instr(5 downto 0) = "001000" then
+				q_new_addr <= i_data_a;
+				q_regwrite <= '0';
+			end if;
 		end if;
 		rt <= instr(20 downto 16);
 		case op IS
@@ -128,9 +132,6 @@ BEGIN
 				q_alusrc <= '1';
 			WHEN j =>
 				q_new_addr <= (X"F0000000" and newpc) or (X"0" & instr(25 downto 0) & "00");
-				q_regwrite <= '0';
-			WHEN jr =>
-				q_new_addr <= i_data_a;
 				q_regwrite <= '0';
 			WHEN andi|ori|xori =>
 				q_imm <= X"0000" & instr(15 downto 0);

@@ -58,7 +58,8 @@ BEGIN
 		rd <= "10111";
 		WAIT FOR period;
 --		write_en <= '0';
-		instr <= b"000000_01010_10101_1111100000100000";
+--		instr <= b"000000_01010_10101_1111100000100000";
+		instr <= b"001000_10101_01010_0000000000000001";
 		WAIT FOR 1*period;
 		ASSERT q_new_addr = X"00000000" REPORT "INVALID PC RETURNED" SEVERITY ERROR;
 		ASSERT q_data_a = X"DEADBEEF" REPORT "BAD DATA IN (A)" & integer'image(to_integer(unsigned(q_data_a))) SEVERITY ERROR;

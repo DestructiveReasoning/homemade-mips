@@ -128,7 +128,7 @@ BEGIN
     fetch: if_stage
     PORT MAP (
         the_new_addr,   -- new pc fed back by ID (in case of a branch, for example)
-        stall,          -- when stall is high, the pc won't be modified
+        not stall,          -- when stall is high, the pc won't be modified
         clock,
         if_instr_in,    -- instruction fetched from memory
         if_newpc_in     -- PC + 4
@@ -258,15 +258,15 @@ BEGIN
         end if;
     END PROCESS;
 
-    mem_wb_forward_data <= wb_data when (mem_instr_out(15 downto 11) = ex_instr_out(15 downto 11) and mem_ctrlsigs_out(regwrite) = '1') else mem_dataa_in;
+    mem_wb_forward_data <= wb_data when (mem_instr_out(15 downto 11) = ex_instr_out(15 downto 11) and mem_ctrlsigs_out(regwrite) = '1') else ex_datab_out;
     memory: mem_stage
     PORT MAP (
         clock,
         ex_dataa_out,
         ex_ctrlsigs_out(memread), ex_ctrlsigs_out(memwrite),
-        ex_datab_out,
+        mem_wb_forward_data,
         -- forwarding data from lw to sw
-        mem_wb_forward_data
+        mem_dataa_in
     );
 
     mem_wb: pipe_reg
