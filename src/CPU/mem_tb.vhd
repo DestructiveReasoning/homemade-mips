@@ -40,7 +40,6 @@ BEGIN
 		write_data <= X"DEADBEEF";
 		write <= '1';
 		WAIT FOR period;
-		addr <= X"00000001";
 		write <= '0';
 		read <= '1';
 		WAIT FOR period;
