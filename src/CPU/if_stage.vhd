@@ -59,6 +59,6 @@ BEGIN
                 q_new_addr <= std_logic_vector(unsigned(pc) + 4); -- increment pc by 4
             end if;
         end if;
-        m_addr <= to_integer(unsigned(pc));
+        m_addr <= to_integer(unsigned(pc))/4;
     END process;
 END fetch;
