@@ -68,7 +68,6 @@ BEGIN
 
 	op <= instr(31 downto 26);
 	rs <= instr(25 downto 21);
-	rt <= instr(20 downto 16);
 	rd <= instr(15 downto 11);
 	q_instr(31) <= '0';
 	q_instr(25 downto 0) <= instr(25 downto 0); -- Gets ALU operation encoding from OP+Funct
@@ -88,7 +87,7 @@ BEGIN
 	);
 	-- RegDst = 1 -> Write back to rd (else write back into rt)
 	-- ALUSrc = 1 -> Don't use immediate value (else use imm)
-	process(instr, clock)
+	process(instr, clock, i_data_a, i_data_b, s_rd)
 	BEGIN
 		q_pcsrc <= '0';
 		q_memwrite <= '0';
@@ -106,6 +105,7 @@ BEGIN
 			q_regdst <= '1';
 			q_alusrc <= '1';
 		end if;
+		rt <= instr(20 downto 16);
 		case op IS
 			WHEN beq|bne =>
 				q_regwrite <= '0';

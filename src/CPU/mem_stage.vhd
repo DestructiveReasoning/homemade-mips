@@ -19,7 +19,8 @@ ARCHITECTURE mem OF mem_stage IS
         GENERIC(
             ram_size : INTEGER := 32768;
             mem_delay : time := 1 ns;
-            clock_period : time := 1 ns
+            clock_period : time := 1 ns;
+            init_file : string := ""
         );
         PORT (
                 clock: IN STD_LOGIC;

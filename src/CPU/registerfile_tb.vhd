@@ -65,8 +65,15 @@ BEGIN
         write_en <= '1';
         WAIT FOR clock_period;
         write_en <= '0';
+        write_data <= X"BADFACE0";
+		rd <= "00011";
+		rt <= "00011";
+        WAIT FOR clock_period;
+        ASSERT rt_data = X"00000000" REPORT "Data written prematurely!" SEVERITY ERROR;
+        write_en <= '1';
         WAIT FOR clock_period; --rs_data and rt_data are available 1CC after write_en was asserted
         ASSERT rs_data = X"DEADBEEF" REPORT "Data not written to destination register!" SEVERITY ERROR;
+        ASSERT rt_data = X"BADFACE0" REPORT "Data not written to destination register!" SEVERITY ERROR;
         -- verify that $0 cannot be written to
         rs <= "00000";
         rd <= "00000";

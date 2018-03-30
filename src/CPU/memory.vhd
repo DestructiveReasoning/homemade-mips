@@ -34,7 +34,7 @@ BEGIN
   
 	mem_process: PROCESS (clock)
     variable no_load : STD_LOGIC := '0';
-    file instr_file : text is in init_file;
+    file instr_file : text;
     variable instr_line : line;
     variable instr : STD_LOGIC_VECTOR(31 downto 0);
     variable i : integer range 0 to ram_size-1;
@@ -42,6 +42,7 @@ BEGIN
 		-- Initialize the SRAM in simulation
 		IF (no_load = '0') THEN
       if(init_file /= "") then
+		  file_open(instr_file, init_file, read_mode);
         i := 0;
         while not endfile(instr_file) loop
           readline (instr_file, instr_line);
