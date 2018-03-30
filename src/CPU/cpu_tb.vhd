@@ -3,6 +3,10 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 ENTITY cpu_tb IS
+	PORT (
+		clock: IN STD_LOGIC;
+		reset: IN STD_LOGIC
+	);
 END cpu_tb;
 
 ARCHITECTURE mips OF CPU_TB IS
@@ -70,7 +74,7 @@ ARCHITECTURE mips OF CPU_TB IS
     CONSTANT regdst: integer := 1;
     CONSTANT memtoreg: integer := 0;
 
-    SIGNAL clock: STD_LOGIC := '0';
+--    SIGNAL clock: STD_LOGIC := '0';
     SIGNAL stall: STD_LOGIC := '0';
 
     SIGNAL if_instr_in,if_newpc_in,if_instr_out,if_newpc_out: STD_LOGIC_VECTOR(31 downto 0) := (others => '0');
@@ -101,6 +105,10 @@ ARCHITECTURE mips OF CPU_TB IS
     signal ex_mem_forward_dataa : std_logic_vector(31 downto 0); -- forwarding data produced by alu to next instruction
     signal ex_mem_forward_datab : std_logic_vector(31 downto 0); -- forwarding data produced by alu to next instruction
 
+	signal reset: std_logic := '1';
+	signal reset_id: std_logic := '0';
+	signal pc_addr: std_logic_vector(31 downto 0);
+
 BEGIN
     -- STALLING LOGIC
     -- This may need some work
@@ -110,7 +118,7 @@ BEGIN
         VARIABLE id_rt: STD_LOGIC_VECTOR(4 downto 0) := (others => '0');
         VARIABLE if_rs, if_rt: STD_LOGIC_VECTOR(4 downto 0) := (others => '0');
     BEGIN
-        stall <= '0';
+        stall <= '1';
         id_rt := id_instr_out(20 downto 16);
         if_rt := if_instr_out(20 downto 16);
         if_rs := if_instr_out(25 downto 21);
@@ -120,24 +128,27 @@ BEGIN
             -- and the target register for lw is a register that will be consumed in the instr in IF, 
             -- then stall
             if((id_rt = if_rs) or (id_rt = if_rt)) then
-                stall <= '1';
+                stall <= '0';
             end if;
         end if;
     END PROCESS;
 
+	reset_id <= reset or (not stall);
+	pc_addr <= the_new_addr when reset = '0' else X"00000000";
+
     fetch: if_stage
     PORT MAP (
-        the_new_addr,   -- new pc fed back by ID (in case of a branch, for example)
-        not stall,          -- when stall is high, the pc won't be modified
+        pc_addr,   -- new pc fed back by ID (in case of a branch, for example)
+        stall,          -- when stall is high, the pc won't be modified
         clock,
-        if_instr_in,    -- instruction fetched from memory
-        if_newpc_in     -- PC + 4
+        if_newpc_in,     -- PC + 4
+        if_instr_in    -- instruction fetched from memory
     );
 
     if_id: pipe_reg
     PORT MAP (
         clock,
-        '0',                                -- the IF/ID reg is never reset
+        reset,                                -- the IF/ID reg is never reset
         if_instr_in,                        -- pull instr from IF stage
         if_newpc_in,                        -- propagate PC+4 for next addr calculation
         (others => '0'),                    -- data not decoded yet
@@ -169,7 +180,7 @@ BEGIN
     id_ex: pipe_reg
     PORT MAP (
         clock,
-		stall, -- Clear out the id/ex (turn instruction into nop) when stalling
+		reset_id, -- Clear out the id/ex (turn instruction into nop) when stalling
         -- pull all pipeline register contents from the decoding from the ID stage
         id_instr_in, id_newpc_in, id_dataa_in, id_datab_in, id_imm_in,
         id_ctrlsigs_in(memread), id_ctrlsigs_in(memwrite), id_ctrlsigs_in(alusrc),
@@ -238,7 +249,7 @@ BEGIN
     ex_mem: pipe_reg
     PORT MAP (
         clock,
-		'0',
+		reset,
         -- place ALU output in data A section
         ex_instr_in, id_newpc_out, ex_alures, id_datab_out, id_imm_out,
         id_ctrlsigs_out(memread), id_ctrlsigs_out(memwrite), id_ctrlsigs_out(alusrc),
@@ -272,7 +283,7 @@ BEGIN
     mem_wb: pipe_reg
     PORT MAP (
         clock,
-        '0',
+        reset,
         ex_instr_out, ex_newpc_out, mem_dataa_in, ex_dataa_out, ex_imm_out,
         ex_ctrlsigs_out(memread), ex_ctrlsigs_out(memwrite), ex_ctrlsigs_out(alusrc),
         ex_ctrlsigs_out(pcsrc), ex_ctrlsigs_out(regwrite), ex_ctrlsigs_out(regdst), ex_ctrlsigs_out(memtoreg),
