@@ -46,13 +46,11 @@ BEGIN
     file_writer: process (write_file) -- process for handling writing data to physical register file
         file output_file: text open write_mode is "register_file.txt";
         variable output_line: line;
-        variable row_line: integer := 0;
     BEGIN
         if(write_file = '1') then
-            while(row_line < 32) LOOP -- iterate over each register and write to file
+          for row_line in 0 to 31 LOOP -- iterate over each register and write to file
                 write(output_line, registers(row_line));
                 writeline(output_file, output_line);
-                row_line := row_line + 1;
             END LOOP;
         end if;
     END process;
