@@ -28,7 +28,7 @@ BEGIN
     BEGIN
         if(reset = '1') then
             registers <= (others => (others => '0'));
-        elsif(rising_edge(clock)) then
+        elsif(falling_edge(clock)) then
             -- rs_data and rt_data available one CC after write_en
             rs_data <= registers(to_integer(unsigned(rs)));
             rt_data <= registers(to_integer(unsigned(rt)));

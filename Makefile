@@ -58,6 +58,9 @@ stage_test: stages test_init
 	ghdl -a --ieee=synopsys $(CPUDIR)/mem_tb.vhd
 	ghdl -e --ieee=synopsys -o $(TESTDIR)/mem_tb mem_tb
 	cd $(TESTDIR) && ghdl -r mem_tb --vcd=mem_tb.vcd
+	ghdl -a --ieee=synopsys $(CPUDIR)/id_tb.vhd
+	ghdl -e --ieee=synopsys -o $(TESTDIR)/id_tb id_tb
+	cd $(TESTDIR) && ghdl -r id_tb --vcd=id_tb.vcd
 
 register: init
 	ghdl -a --ieee=synopsys $(CPUDIR)/registerfile.vhd

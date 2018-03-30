@@ -88,7 +88,7 @@ BEGIN
 	);
 	-- RegDst = 1 -> Write back to rd (else write back into rt)
 	-- ALUSrc = 1 -> Don't use immediate value (else use imm)
-	process(instr)
+	process(instr, clock)
 	BEGIN
 		q_pcsrc <= '0';
 		q_memwrite <= '0';
