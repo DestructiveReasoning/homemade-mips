@@ -1,0 +1,183 @@
+$date
+  Thu Mar 29 20:34:44 2018
+$end
+$version
+  GHDL v0
+$end
+$timescale
+  1 fs
+$end
+$var reg 1 ! clock $end
+$var reg 32 " addr[31:0] $end
+$var reg 1 # read $end
+$var reg 1 $ write $end
+$var reg 32 % write_data[31:0] $end
+$var reg 32 & output[31:0] $end
+$var reg 1 ' finished $end
+$scope module stage $end
+$var reg 1 ( clock $end
+$var reg 32 ) addr[31:0] $end
+$var reg 1 * read $end
+$var reg 1 + write $end
+$var reg 32 , write_data[31:0] $end
+$var reg 32 - output[31:0] $end
+$var reg 32 . writedata[31:0] $end
+$var integer 32 / address $end
+$var reg 1 0 memwrite $end
+$var reg 1 1 memread $end
+$var reg 32 2 readdata[31:0] $end
+$var reg 1 3 waitrequest $end
+$var integer 32 4 i_addr $end
+$scope module instr_mem $end
+$var reg 1 5 clock $end
+$var reg 32 6 writedata[31:0] $end
+$var integer 32 7 address $end
+$var reg 1 8 memwrite $end
+$var reg 1 9 memread $end
+$var reg 32 : readdata[31:0] $end
+$var reg 1 ; waitrequest $end
+$comment ram_block is not handled $end
+$var integer 32 < read_address_reg $end
+$var reg 1 = write_waitreq_reg $end
+$var reg 1 > read_waitreq_reg $end
+$upscope $end
+$upscope $end
+$enddefinitions $end
+#0
+0!
+b00000000000000000000000000000000 "
+0#
+1$
+b11011110101011011011111011101111 %
+b00000000000000000000000000000000 &
+0'
+0(
+b00000000000000000000000000000000 )
+0*
+1+
+b11011110101011011011111011101111 ,
+b00000000000000000000000000000000 -
+bUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU .
+b0 /
+00
+01
+bUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU 2
+U3
+b0 4
+05
+b11011110101011011011111011101111 6
+b0 7
+18
+09
+b00000000000000000000000000000000 :
+1;
+b0 <
+1=
+1>
+#500000
+1!
+b11011110101011011011111011101111 &
+1(
+b11011110101011011011111011101111 -
+15
+b11011110101011011011111011101111 :
+#1000000
+0!
+0$
+0(
+0+
+05
+08
+0;
+0=
+#1500000
+1!
+1(
+15
+#2000000
+0!
+0(
+05
+1;
+1=
+#2500000
+1!
+1(
+15
+#3000000
+0!
+0(
+05
+#3500000
+1!
+1(
+15
+#4000000
+0!
+0(
+05
+#4500000
+1!
+1(
+15
+#5000000
+0!
+0(
+05
+#5500000
+1!
+1(
+15
+#6000000
+0!
+0(
+05
+#6500000
+1!
+1(
+15
+#7000000
+0!
+0(
+05
+#7500000
+1!
+1(
+15
+#8000000
+0!
+0(
+05
+#8500000
+1!
+1(
+15
+#9000000
+0!
+0(
+05
+#9500000
+1!
+1(
+15
+#10000000
+0!
+0(
+05
+#10500000
+1!
+1(
+15
+#11000000
+0!
+0(
+05
+#11500000
+1!
+1(
+15
+#12000000
+0!
+1'
+0(
+05
