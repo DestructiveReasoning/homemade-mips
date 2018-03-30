@@ -42,7 +42,9 @@ cpu: register alu stages
 	ghdl -a --ieee=synopsys $(CPUDIR)/cpu_tb.vhd
 	ghdl -e --ieee=synopsys -o $(BUILDDIR)/cpu_tb cpu_tb
 
-stages: init
+stages: alu misc register init
+	ghdl -a --ieee=synopsys $(CPUDIR)/memory.vhd
+	ghdl -e --ieee=synopsys -o $(BUILDDIR)/memory memory
 	ghdl -a --ieee=synopsys $(CPUDIR)/pipe_reg.vhd
 	ghdl -e --ieee=synopsys -o $(BUILDDIR)/pipe_reg pipe_reg
 	ghdl -a --ieee=synopsys $(CPUDIR)/if_stage.vhd
@@ -51,6 +53,11 @@ stages: init
 	ghdl -e --ieee=synopsys -o $(BUILDDIR)/id_stage id_stage
 	ghdl -a --ieee=synopsys $(CPUDIR)/mem_stage.vhd
 	ghdl -e --ieee=synopsys -o $(BUILDDIR)/mem_stage mem_stage
+
+stage_test: stages test_init
+	ghdl -a --ieee=synopsys $(CPUDIR)/mem_tb.vhd
+	ghdl -e --ieee=synopsys -o $(TESTDIR)/mem_tb mem_tb
+	cd $(TESTDIR) && ghdl -r mem_tb --vcd=mem_tb.vcd
 
 register: init
 	ghdl -a --ieee=synopsys $(CPUDIR)/registerfile.vhd
