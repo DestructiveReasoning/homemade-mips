@@ -25,40 +25,48 @@ END memory;
 
 ARCHITECTURE rtl OF memory IS
 	TYPE MEM IS ARRAY(ram_size-1 downto 0) OF STD_LOGIC_VECTOR(31 DOWNTO 0);
-	SIGNAL ram_block: MEM;
 	SIGNAL read_address_reg: INTEGER RANGE 0 to ram_size-1;
 	SIGNAL write_waitreq_reg: STD_LOGIC := '1';
 	SIGNAL read_waitreq_reg: STD_LOGIC := '1';
+
+  function init_mem return MEM is
+    variable init_value : MEM;
+
+    file instr_file : text;
+    variable instr_line : line;
+    variable instr : STD_LOGIC_VECTOR(31 downto 0);
+    variable i : integer range 0 to ram_size;
+
+  begin
+    for i in 0 to ram_size-1 loop
+     init_value(i) := (others => '0');
+    end loop;
+
+    if(init_file /= "") then
+		  file_open(instr_file, init_file, read_mode);
+      for i in 0 to ram_size-1 loop
+        if not endfile(instr_file) then
+          readline (instr_file, instr_line);
+          read(instr_line, instr);
+          init_value(i) := instr;
+        else
+          init_value(i) := (others => '0');
+        end if;
+      end loop;
+      file_close(instr_file);
+    end if;
+    return init_value;
+  end function init_mem;
+
+  constant init_rom : MEM := init_mem;
+	SIGNAL ram_block: MEM := init_rom;
+
 BEGIN
 	--This is the main section of the SRAM model
   
 	mem_process: PROCESS (clock)
     variable no_load : STD_LOGIC := '0';
-    file instr_file : text;
-    variable instr_line : line;
-    variable instr : STD_LOGIC_VECTOR(31 downto 0);
-    variable i : integer range 0 to ram_size-1;
 	BEGIN
-		-- Initialize the SRAM in simulation
-		IF (no_load = '0') THEN
-      if(init_file /= "") then
-		  file_open(instr_file, init_file, read_mode);
-        i := 0;
-        while not endfile(instr_file) loop
-          readline (instr_file, instr_line);
-          read(instr_line, instr);
-          ram_block(i) <= instr;
-          i := i + 1;
-        end loop;
-        file_close(instr_file);
-      else
-        for i in 0 to ram_size-1 loop
-          ram_block(i) <= (others => '0');
-        end loop;
-      end if;
-      no_load := '1';
-		end if;
-
 		--This is the actual synthesizable SRAM block
 		IF (clock'event AND clock = '1') THEN
 			IF (memwrite = '1') THEN
