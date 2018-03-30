@@ -37,14 +37,17 @@ BEGIN
     file instr_file : text is in init_file;
     variable instr_line : line;
     variable instr : STD_LOGIC_VECTOR(31 downto 0);
+    variable i : integer range 0 to ram_size-1;
 	BEGIN
 		-- Initialize the SRAM in simulation
 		IF (no_load = '0') THEN
       if(init_file /= "") then
-        for i in 0 to ram_size-1 loop
+        i := 0;
+        while not endfile(instr_file) loop
           readline (instr_file, instr_line);
           read(instr_line, instr);
           ram_block(i) <= instr;
+          i := i + 1;
         end loop;
         file_close(instr_file);
       else
