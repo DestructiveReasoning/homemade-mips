@@ -1,6 +1,7 @@
 proc AddWaves {} {
 	;#Add waves we're interested in to the Wave window
   add wave -position end sim:/testbench/cpu/*
+  add wave -position end sim:/testbench/cpu/decode/reg/*
   add wave -position end sim:/testbench/*
 }                                           
 

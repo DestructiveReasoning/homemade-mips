@@ -47,7 +47,7 @@ ARCHITECTURE mem OF mem_stage IS
 -- Include the part where it dumps to disk, include this from register vhd, logic to write to disk is there
 
 BEGIN
-    i_addr <= to_integer(unsigned(addr))/4;
+    i_addr <= to_integer(unsigned(addr));
 
     instr_mem : memory
     PORT MAP(

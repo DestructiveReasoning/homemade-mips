@@ -23,23 +23,31 @@ ARCHITECTURE registerstuff OF registerfile IS
     TYPE register_mem IS ARRAY (31 downto 0) OF std_logic_vector(31 downto 0);
     SIGNAL registers: register_mem := (others => (others => '0'));
 
+
 BEGIN
     register_transfer: process (clock, reset) -- process for handling register transactions
     BEGIN
+            rs_data <= registers(to_integer(unsigned(rs)));
+            rt_data <= registers(to_integer(unsigned(rt)));
         if(reset = '1') then
             registers <= (others => (others => '0'));
         elsif(falling_edge(clock)) then
             -- rs_data and rt_data available one CC after write_en
-            rs_data <= registers(to_integer(unsigned(rs)));
-            rt_data <= registers(to_integer(unsigned(rt)));
-
-            if(write_en = '1') then
-                if(rd = "00000") then
-					registers(0) <= (others => '0');
-                else
-                    registers(to_integer(unsigned(rd))) <= write_data;
-                end if;
+          if(write_en = '1') then
+            if(rd = "00000") then
+              registers(0) <= (others => '0');
+            else
+              registers(to_integer(unsigned(rd))) <= write_data;
             end if;
+
+            if(rd = rs) then
+              rs_data <= write_data;
+            end if;
+            if(rd = rt) then 
+              rt_data <= write_data;
+            end if;
+          end if;
+
         end if;
     END process;
 

@@ -105,6 +105,10 @@ ARCHITECTURE mips OF CPU_TB IS
     signal ex_mem_forward_dataa : std_logic_vector(31 downto 0); -- forwarding data produced by alu to next instruction
     signal ex_mem_forward_datab : std_logic_vector(31 downto 0); -- forwarding data produced by alu to next instruction
 
+    signal ex_forward_a : integer range 0 to 2; 
+    signal ex_forward_b : integer range 0 to 2;
+    signal ex_forward_prealusrc : std_logic_vector(31 downto 0);
+
 	signal reset_id: std_logic := '0';
 	signal pc_addr: std_logic_vector(31 downto 0);
 
@@ -189,6 +193,14 @@ BEGIN
         id_ctrlsigs_out(pcsrc), id_ctrlsigs_out(regwrite), id_ctrlsigs_out(regdst), id_ctrlsigs_out(memtoreg)
     );
 
+
+    ex_mem_forward_dataa <= ex_dataa_out when(ex_forward_a = 2) else wb_data when(ex_forward_a = 1) else id_dataa_out;
+    ex_mem_forward_datab <= ex_datab_out when(ex_forward_b = 2) else wb_data when(ex_forward_b = 1) else id_imm_out when(id_ctrlsigs_out(alusrc) = '1') else id_datab_out;
+    ex_forward_prealusrc <= ex_datab_out when(ex_forward_b = 2) else mem_datab_out when(ex_forward_b = 1) else id_datab_out;
+     -- if(id_ctrlsigs_out(alusrc) = '1') then
+     --   ex_mem_forward_datab <= id_imm_out;
+     -- end if;
+
     to_ex_forwarding: process(id_instr_out, ex_instr_out, mem_instr_out)
       -- register numbers in ex stage
       variable ex_rt : std_logic_vector(4 downto 0) := id_instr_out(20 downto 16);
@@ -200,7 +212,6 @@ BEGIN
       -- register numbers in wb stage
       variable wb_rd : std_logic_vector(4 downto 0) := mem_instr_out(15 downto 11);
 
-      variable post_forwarding_datab_pre_alusrc : std_logic_vector(31 downto 0);
     begin
 
       ex_rt := id_instr_out(20 downto 16);
@@ -208,30 +219,25 @@ BEGIN
       mem_rd := ex_instr_out(15 downto 11);
       wb_rd := mem_instr_out(15 downto 11);
 
-      ex_mem_forward_dataa <= id_dataa_out;
-      ex_mem_forward_datab <= id_datab_out;
+      ex_forward_a <= 0;
+      ex_forward_b <= 0;
 
-      -- forwarding from mem
-      if(ex_ctrlsigs_out(regwrite) = '1') then
-        if(mem_rd = ex_rs) then ex_mem_forward_dataa <= ex_dataa_out;
-        end if;
-        if(mem_rd = ex_rt) then ex_mem_forward_datab <= ex_dataa_out;
-        end if;
       -- forwarding from wb
-      elsif mem_ctrlsigs_out(regwrite) = '1' then
-        if(wb_rd = ex_rs) then ex_mem_forward_dataa <= wb_data;
+      if mem_ctrlsigs_out(regwrite) = '1' and wb_rd /= "00000" then
+        if(wb_rd = ex_rs) then ex_forward_a <= 1;
         end if;
-        if(wb_rd = ex_rt) then ex_mem_forward_datab <= wb_data;
+        if(wb_rd = ex_rt) then ex_forward_b <= 1;
         end if;
       end if;
-
-      post_forwarding_datab_pre_alusrc := ex_mem_forward_datab;
-      ex_datab_in <= post_forwarding_datab_pre_alusrc;
+      -- forwarding from mem
+      if(ex_ctrlsigs_out(regwrite) = '1' and mem_rd /= "00000") then
+        if(mem_rd = ex_rs) then ex_forward_a <= 2;
+        end if;
+        if(mem_rd = ex_rt) then ex_forward_b <= 2;
+        end if;
+      end if;
 
       -- immediate selector
-      if(id_ctrlsigs_out(alusrc) = '1') then
-        ex_mem_forward_datab <= id_imm_out;
-      end if;
     end process;
 
     arithmetic: alu
@@ -250,7 +256,7 @@ BEGIN
         clock,
 		reset,
         -- place ALU output in data A section
-        ex_instr_in, id_newpc_out, ex_alures, id_datab_out, id_imm_out,
+        ex_instr_in, id_newpc_out, ex_alures, ex_forward_prealusrc, id_imm_out,
         id_ctrlsigs_out(memread), id_ctrlsigs_out(memwrite), id_ctrlsigs_out(alusrc),
         id_ctrlsigs_out(pcsrc), id_ctrlsigs_out(regwrite), id_ctrlsigs_out(regdst), id_ctrlsigs_out(memtoreg),
         ex_instr_out, ex_newpc_out, ex_dataa_out, ex_datab_out, ex_imm_out,

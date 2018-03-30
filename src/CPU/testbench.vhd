@@ -20,7 +20,7 @@ port map(clock, reset);
 	test: process
 	BEGIN
 		reset <= '1';
-		WAIT FOR 1 ns;
+		WAIT FOR 0.4 ns;
 		reset <= '0';
 		WAIT;
 	END process;

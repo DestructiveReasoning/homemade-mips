@@ -53,7 +53,7 @@ BEGIN
 
     pc <= new_addr;
     m_addr <= to_integer(unsigned(pc(9 downto 0)))/4;
-    fetch_process : process(clock)
+    fetch_process : process(clock, pc)
     BEGIN
         if(pc_en = '1') then
             q_new_addr <= std_logic_vector(unsigned(pc) + 4); -- increment pc by 4
