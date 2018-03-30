@@ -1,6 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use std.textio.all;
 
 entity if_stage is
     PORT (
@@ -18,7 +19,8 @@ ARCHITECTURE fetch OF if_stage IS
 		GENERIC(
 		    ram_size : INTEGER := 32768;
 		    mem_delay : time := 0 ns;
-		    clock_period : time := 1 ns
+		    clock_period : time := 1 ns;
+            init_file: string := "program.txt"
 		);
 		PORT (
 		    clock: IN STD_LOGIC;
