@@ -51,14 +51,12 @@ BEGIN
 		WAITrequest => open
     );
 
+    pc <= new_addr;
+    m_addr <= to_integer(unsigned(pc))/4;
     fetch_process : process(clock)
     BEGIN
-        if(rising_edge(clock)) then
-            if(pc_en = '1') then
-                pc <= new_addr;
-                q_new_addr <= std_logic_vector(unsigned(pc) + 4); -- increment pc by 4
-            end if;
+        if(pc_en = '1') then
+            q_new_addr <= std_logic_vector(unsigned(pc) + 4); -- increment pc by 4
         end if;
-        m_addr <= to_integer(unsigned(pc))/4;
     END process;
 END fetch;
