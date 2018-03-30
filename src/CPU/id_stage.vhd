@@ -94,7 +94,7 @@ BEGIN
 		q_memread <= '0';
 		q_memtoreg <= '0';
 		q_regdst <= '0';
-		q_alusrc <= '0';
+		q_alusrc <= '1';
 		q_regwrite <= '1';
 		q_data_a <= i_data_a;
 		q_data_b <= i_data_b;
@@ -103,7 +103,7 @@ BEGIN
 		q_imm(15 downto 0) <= instr(15 downto 0);
 		if(op = "000000") then
 			q_regdst <= '1';
-			q_alusrc <= '1';
+			q_alusrc <= '0';
 			if instr(5 downto 0) = "001000" then
 				q_new_addr <= i_data_a;
 				q_regwrite <= '0';
@@ -129,7 +129,7 @@ BEGIN
 				q_pcsrc <= '1';
 				-- Assuming PC and PC+4 have the same 4 MSB's
 				q_new_addr <= (X"F0000000" and newpc) or (X"0" & instr(25 downto 0) & "00");
-				q_alusrc <= '1';
+				q_alusrc <= '0';
 			WHEN j =>
 				q_new_addr <= (X"F0000000" and newpc) or (X"0" & instr(25 downto 0) & "00");
 				q_regwrite <= '0';
