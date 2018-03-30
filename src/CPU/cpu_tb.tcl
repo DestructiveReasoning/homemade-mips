@@ -1,6 +1,6 @@
 proc AddWaves {} {
 	;#Add waves we're interested in to the Wave window
-  add wave -position end sim:/cpu_tb/*
+  add wave -position end sim:/testbench/cpu/*
   add wave -position end sim:/testbench/*
 }                                           
 
@@ -18,6 +18,7 @@ vcom mem_stage.vhd
 vcom pipe_reg.vhd
 vcom registerfile.vhd
 vcom registerfile_tb.vhd
+vcom memory.vhd
 
 ;# Start simulation
 vsim testbench
@@ -29,5 +30,5 @@ force -deposit clock 0 0 ns, 1 0.5 ns -repeat 1 ns
 AddWaves
 
 ;# Run for 100ns
-run 100ns
+run 200ns
 

@@ -17,7 +17,7 @@ ARCHITECTURE fetch OF if_stage IS
     -- INSTRUCTION MEMORY COMPONENT
     COMPONENT memory is 
 		GENERIC(
-		    ram_size : INTEGER := 32768;
+		    ram_size : INTEGER := 1023;
 		    mem_delay : time := 0 ns;
 		    clock_period : time := 1 ns;
             init_file: string := "program.txt"
@@ -35,7 +35,7 @@ ARCHITECTURE fetch OF if_stage IS
 
     -- SIGNALS
     SIGNAL pc: STD_LOGIC_VECTOR(31 downto 0) := (others => '0');
-    SIGNAL m_addr : integer range 0 to 2147483647 := 0;
+    SIGNAL m_addr : integer range 0 to 1023 := 0;
 	SIGNAL m_readdata : std_logic_vector (31 downto 0) := (others => '0'); 
     
 BEGIN
@@ -52,7 +52,7 @@ BEGIN
     );
 
     pc <= new_addr;
-    m_addr <= to_integer(unsigned(pc))/4;
+    m_addr <= to_integer(unsigned(pc(9 downto 0)))/4;
     fetch_process : process(clock)
     BEGIN
         if(pc_en = '1') then

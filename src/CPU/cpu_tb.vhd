@@ -105,7 +105,6 @@ ARCHITECTURE mips OF CPU_TB IS
     signal ex_mem_forward_dataa : std_logic_vector(31 downto 0); -- forwarding data produced by alu to next instruction
     signal ex_mem_forward_datab : std_logic_vector(31 downto 0); -- forwarding data produced by alu to next instruction
 
-	signal reset: std_logic := '1';
 	signal reset_id: std_logic := '0';
 	signal pc_addr: std_logic_vector(31 downto 0);
 

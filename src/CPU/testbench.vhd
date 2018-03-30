@@ -11,7 +11,12 @@ ARCHITECTURE test of testbench IS
 			reset: IN STD_LOGIC
 		);
 	END COMPONENT;
+
+  signal clock, reset : STD_LOGIC;
 BEGIN
+
+cpu : cpu_tb
+port map(clock, reset);
 	test: process
 	BEGIN
 		reset <= '1';
