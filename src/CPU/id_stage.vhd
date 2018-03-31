@@ -12,7 +12,7 @@ ENTITY id_stage IS
 		q_instr, q_newpc, q_data_a, q_data_b, q_imm: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
 		q_memread, q_memwrite, q_alusrc, q_pcsrc, q_regwrite, q_regdst, q_memtoreg: OUT STD_LOGIC;
 		q_new_addr: OUT STD_LOGIC_VECTOR(31 downto 0);
-    flush : out STD_LOGIC
+    branching : out STD_LOGIC
 	);
 END id_stage;
 
@@ -112,7 +112,7 @@ BEGIN
 		q_data_a <= i_data_a;
 		q_data_b <= i_data_b;
 		q_new_addr <= newpc;
-    flush <= '0';
+    branching <= '0';
 		q_imm(31 downto 16) <= (others => instr(15));
 		q_imm(15 downto 0) <= instr(15 downto 0);
 		if(op = "000000") then
@@ -131,7 +131,7 @@ BEGIN
 				q_regwrite <= '0';
 				if op = beq xnor i_data_a = i_data_b then -- xnor handles both bne and beq
 					q_new_addr <= std_logic_vector(unsigned(newpc) + unsigned(b"000000" & instr(15 downto 0) & b"00"));
-          flush <= '1';
+          branching <= '1';
 				end if;
 			WHEN sw =>
 				q_memwrite <= '1';
@@ -148,13 +148,11 @@ BEGIN
         -- multiply pc by 4 and pad
 				q_new_addr <= (X"F0000000" and newpc) or (X"0" & instr(25 downto 0) & "00");
 				q_alusrc <= '0';
-        flush <= '1';
 			WHEN j =>
         -- similar to above
 				--q_new_addr <= (X"F0000000" and newpc) or (X"0" & instr(25 downto 0) & "00");
 				q_new_addr <= "0000" & instr(25 downto 0) & "00";
 				q_regwrite <= '0';
-        flush <= '1';
 			WHEN andi|ori|xori =>
 				q_imm <= X"0000" & instr(15 downto 0);
 			WHEN others => null;
