@@ -14,11 +14,11 @@ ENTITY memory IS
 	);
 	PORT (
 		clock: IN STD_LOGIC;
-		writedata: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
+		writedata: IN STD_LOGIC_VECTOR (31 DOWNTO 0); -- Changed to 32 bit
 		address: IN INTEGER RANGE 0 TO ram_size-1;
 		memwrite: IN STD_LOGIC;
 		memread: IN STD_LOGIC;
-		readdata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
+		readdata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0); -- 32 bit again
 		waitrequest: OUT STD_LOGIC
 	);
 END memory;
