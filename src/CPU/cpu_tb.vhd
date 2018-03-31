@@ -166,7 +166,7 @@ BEGIN
         reset,                                -- the IF/ID reg is never reset
         '0',
         reset_id,
-        if_instr_in_flushed,                        -- pull instr from IF stage
+        if_instr_in,                        -- pull instr from IF stage
         if_newpc_in,                        -- propagate PC+4 for next addr calculation
         (others => '0'),                    -- data not decoded yet
         (others => '0'),                    -- data not decoded yet
