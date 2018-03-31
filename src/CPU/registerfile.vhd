@@ -20,26 +20,27 @@ ENTITY registerfile IS
 END registerfile;
 
 ARCHITECTURE registerstuff OF registerfile IS
-    TYPE register_mem IS ARRAY (31 downto 0) OF std_logic_vector(31 downto 0);
+    TYPE register_mem IS ARRAY (31 downto 0) OF std_logic_vector(31 downto 0); -- array of vectors
     SIGNAL registers: register_mem := (others => (others => '0'));
 
 
 BEGIN
     register_transfer: process (clock, reset) -- process for handling register transactions
     BEGIN
-            rs_data <= registers(to_integer(unsigned(rs)));
-            rt_data <= registers(to_integer(unsigned(rt)));
+            rs_data <= registers(to_integer(unsigned(rs))); -- fetch data immediately from rs index
+            rt_data <= registers(to_integer(unsigned(rt))); -- fetch data immediately from rt index
         if(reset = '1') then
-            registers <= (others => (others => '0'));
-        elsif(falling_edge(clock)) then
+            registers <= (others => (others => '0')); -- reset all registers to 0
+        elsif(falling_edge(clock)) then -- trigger at falling edge in order to provide data before the next rising edge
             -- rs_data and rt_data available one CC after write_en
           if(write_en = '1') then
             if(rd = "00000") then
-              registers(0) <= (others => '0');
+              registers(0) <= (others => '0'); -- never write anything to $0
             else
               registers(to_integer(unsigned(rd))) <= write_data;
             end if;
 
+			-- if writing and reading at the same time, bypass in order to provide data before the next clock
             if(rd = rs) then
               rs_data <= write_data;
             end if;
@@ -51,6 +52,7 @@ BEGIN
         end if;
     END process;
 
+	-- Process for writing to actual file on disk
     file_writer: process (write_file) -- process for handling writing data to physical register file
         file output_file: text open write_mode is "register_file.txt";
         variable output_line: line;
