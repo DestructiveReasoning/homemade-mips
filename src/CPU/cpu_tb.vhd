@@ -208,7 +208,7 @@ BEGIN
     begin
       id_rt := if_instr_out(20 downto 16);
       id_rs := if_instr_out(25 downto 21);
-      ex_rd := id_instr_out(15 downto 11);
+      ex_rd := ex_instr_in(15 downto 11);
       mem_rd := ex_instr_out(15 downto 11);
 
       branching_forward_rt <= 0;
