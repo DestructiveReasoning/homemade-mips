@@ -57,7 +57,7 @@ BEGIN
     m_addr <= to_integer(unsigned(pc(9 downto 0)))/4;
     fetch_process : process(clock, pc)
     BEGIN
-        if(pc_en = '1' and unsigned(pc) < pc'high - 4) then
+        if(pc_en = '1' and unsigned(pc) < 1020) then
             q_new_addr <= std_logic_vector(unsigned(pc) + 4); -- increment pc by 4
         else
             q_new_addr <= pc;
