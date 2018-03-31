@@ -6,11 +6,11 @@ use ieee.numeric_std.all;
 
 entity mem_stage is
     PORT (
-        clock:      IN STD_LOGIC;
-        addr:       IN STD_LOGIC_VECTOR(31 downto 0);
-        read,write: IN STD_LOGIC;
-        write_data: IN STD_LOGIC_VECTOR(31 downto 0);
-        output:     OUT STD_LOGIC_VECTOR(31 downto 0)
+        clock:      IN STD_LOGIC;                       -- Clock
+        addr:       IN STD_LOGIC_VECTOR(31 downto 0);   -- Address we care about
+        read,write: IN STD_LOGIC;                       -- Check if reading or writing
+        write_data: IN STD_LOGIC_VECTOR(31 downto 0);   -- Data itself
+        output:     OUT STD_LOGIC_VECTOR(31 downto 0)   -- Data output
     );
 END mem_stage;
 
@@ -26,7 +26,7 @@ ARCHITECTURE mem OF mem_stage IS
             init_file : string := ""
         );
         PORT (
-                clock: IN STD_LOGIC;
+        clock: IN STD_LOGIC;
         writedata: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
         address: IN INTEGER RANGE 0 TO ram_size-1;
         memwrite: IN STD_LOGIC;
