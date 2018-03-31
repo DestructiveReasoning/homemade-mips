@@ -198,11 +198,11 @@ BEGIN
 
     -- forward data from ex or mem if branching decision registers being modified in previous instrucitons
     -- ex priority over mem
-    branching_forwarding: process(branching, reset, wb_data, mem_instr_out, mem_ctrlsigs_out)
+    branching_forwarding: process(branching, reset, wb_data, mem_instr_out, mem_ctrlsigs_out, if_instr_out, id_instr_out, ex_instr_out, ex_instr_in)
       variable id_rt : std_logic_vector(4 downto 0) := if_instr_out(20 downto 16);
       variable id_rs : std_logic_vector(4 downto 0) := if_instr_out(25 downto 21);
       -- register numbers in ex stage
-      variable ex_rd : std_logic_vector(4 downto 0) := id_instr_out(15 downto 11);
+      variable ex_rd : std_logic_vector(4 downto 0) := ex_instr_in(15 downto 11);
       -- register numbers in mem stage
       variable mem_rd : std_logic_vector(4 downto 0) := ex_instr_out(15 downto 11);
     begin

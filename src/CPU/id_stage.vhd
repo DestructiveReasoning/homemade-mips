@@ -91,6 +91,9 @@ BEGIN
 		i_data_a,
 		i_data_b
 	);
+
+
+  branching <= '1' when (op = bne or op = beq) else '0';
     -- when approaching 10000 cycles dump register contents to disk
     process
     begin
@@ -116,7 +119,6 @@ BEGIN
 		q_data_a <= i_data_a;
 		q_data_b <= i_data_b;
 		q_new_addr <= newpc;
-    branching <= '0';
 		q_imm(31 downto 16) <= (others => instr(15));
 		q_imm(15 downto 0) <= instr(15 downto 0);
     forwarded_data_a := i_data_a;
@@ -134,7 +136,6 @@ BEGIN
     -- op is opcode 
 		case op IS
 			WHEN beq|bne =>
-        branching <= '1';
 				q_regwrite <= '0';
 
         -- select data to compare based on forwarding
