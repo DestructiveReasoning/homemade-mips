@@ -46,7 +46,6 @@ ARCHITECTURE id of id_stage IS
 
 	SIGNAL i_data_a, i_data_b: STD_LOGIC_VECTOR(31 downto 0);
 --	SIGNAL new_addr: STD_LOGIC_VECTOR(31 downto 0);
-  signal forwarded_data_a, forwarded_data_b : STD_LOGIC_VECTOR(31 downto 0);
 
 
   -- constants for figuring out instructions
@@ -104,6 +103,7 @@ BEGIN
 	-- RegDst = 1 -> Write back to rd (else write back into rt)
 	-- ALUSrc = 1 -> Don't use immediate value (else use imm)
 	process(instr, clock, i_data_a, i_data_b, s_rd)
+  variable forwarded_data_a, forwarded_data_b : STD_LOGIC_VECTOR(31 downto 0);
 	BEGIN
     -- control signal assertions
 		q_pcsrc <= '0';
@@ -119,8 +119,8 @@ BEGIN
     branching <= '0';
 		q_imm(31 downto 16) <= (others => instr(15));
 		q_imm(15 downto 0) <= instr(15 downto 0);
-    forwarded_data_a <= i_data_a;
-    forwarded_data_b <= i_data_b;
+    forwarded_data_a := i_data_a;
+    forwarded_data_b := i_data_b;
 		if(op = "000000") then
 			q_regdst <= '1';
 			q_alusrc <= '0';
@@ -138,9 +138,9 @@ BEGIN
 				q_regwrite <= '0';
 
         -- select data to compare based on forwarding
-        if forwarded_rs = 1 then forwarded_data_a <= forwarded_rs_data;
+        if forwarded_rs = 1 then forwarded_data_a := forwarded_rs_data;
         end if;
-        if forwarded_rt = 1 then forwarded_data_b <= forwarded_rt_data;
+        if forwarded_rt = 1 then forwarded_data_b := forwarded_rt_data;
         end if;
 
         if op = beq xnor forwarded_data_a = forwarded_data_b then -- xnor handles both bne and beq
