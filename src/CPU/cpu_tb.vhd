@@ -29,7 +29,8 @@ ARCHITECTURE mips OF CPU_TB IS
             s_rd: IN STD_LOGIC_VECTOR(4 downto 0);
             q_instr, q_newpc, q_data_a, q_data_b, q_imm: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
             q_memread, q_memwrite, q_alusrc, q_pcsrc, q_regwrite, q_regdst, q_memtoreg: OUT STD_LOGIC;
-            q_new_addr: OUT STD_LOGIC_VECTOR(31 downto 0)
+            q_new_addr: OUT STD_LOGIC_VECTOR(31 downto 0);
+            flush : out STD_LOGIC
         );
     END COMPONENT;
 
@@ -118,6 +119,9 @@ ARCHITECTURE mips OF CPU_TB IS
 	signal reset_id: std_logic := '0'; -- signal to clear ID/EX and freeze IF/ID
 	signal pc_addr: std_logic_vector(31 downto 0);
 
+  signal if_instr_in_flushed : std_logic_vector(31 downto 0);
+  signal flush : STD_LOGIC;
+
   signal write_reg : std_logic := '0';
 BEGIN
     -- STALLING LOGIC
@@ -155,13 +159,14 @@ BEGIN
         if_instr_in    -- instruction fetched from memory
     );
 
+    if_instr_in_flushed <= if_instr_in when(flush = '0') else b"00000000000000000000000000100000";
     if_id: pipe_reg
     PORT MAP (
         clock,
         reset,                                -- the IF/ID reg is never reset
         '0',
         reset_id,
-        if_instr_in,                        -- pull instr from IF stage
+        if_instr_in_flushed,                        -- pull instr from IF stage
         if_newpc_in,                        -- propagate PC+4 for next addr calculation
         (others => '0'),                    -- data not decoded yet
         (others => '0'),                    -- data not decoded yet
@@ -186,7 +191,8 @@ BEGIN
         id_instr_in, id_newpc_in, id_dataa_in, id_datab_in, id_imm_in,
         id_ctrlsigs_in(memread), id_ctrlsigs_in(memwrite), id_ctrlsigs_in(alusrc),
         id_ctrlsigs_in(pcsrc), id_ctrlsigs_in(regwrite), id_ctrlsigs_in(regdst), id_ctrlsigs_in(memtoreg),
-        the_new_addr
+        the_new_addr,
+        flush
     );
 
     id_ex: pipe_reg
