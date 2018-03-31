@@ -2,6 +2,8 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+-- Ports needed to interact with rest of CPU
+
 entity mem_stage is
     PORT (
         clock:      IN STD_LOGIC;
