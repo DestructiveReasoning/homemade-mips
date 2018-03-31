@@ -25,7 +25,7 @@ END memory;
 
 ARCHITECTURE rtl OF memory IS
 	TYPE MEM IS ARRAY(ram_size-1 downto 0) OF STD_LOGIC_VECTOR(31 DOWNTO 0);
-	SIGNAL ram_block: MEM;
+	SIGNAL ram_block: MEM := (others => (others => '0'));
 	SIGNAL read_address_reg: INTEGER RANGE 0 to ram_size-1;
 	SIGNAL write_waitreq_reg: STD_LOGIC := '1';
 	SIGNAL read_waitreq_reg: STD_LOGIC := '1';
@@ -41,6 +41,9 @@ BEGIN
 	BEGIN
 		-- Initialize the SRAM in simulation
 		IF (no_load = '0') THEN
+      for i in 0 to ram_size-1 loop
+        ram_block(i) <= (others => '0');
+      end loop;
       if(init_file /= "") then
 		  file_open(instr_file, init_file, read_mode);
         i := 0;
@@ -52,9 +55,6 @@ BEGIN
         end loop;
         file_close(instr_file);
       else
-        for i in 0 to ram_size-1 loop
-          ram_block(i) <= (others => '0');
-        end loop;
       end if;
       no_load := '1';
 		end if;
