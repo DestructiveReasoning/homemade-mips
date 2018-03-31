@@ -17,10 +17,10 @@ ARCHITECTURE fetch OF if_stage IS
     -- INSTRUCTION MEMORY COMPONENT
     COMPONENT memory is 
 		GENERIC(
-		    ram_size : INTEGER := 1023;
+		    ram_size : INTEGER := 1024;
 		    mem_delay : time := 0 ns;
 		    clock_period : time := 1 ns;
-            init_file: string := "program.txt"
+        init_file: string := "program.txt"
 		);
 		PORT (
 		    clock: IN STD_LOGIC;
@@ -37,12 +37,13 @@ ARCHITECTURE fetch OF if_stage IS
     SIGNAL pc: STD_LOGIC_VECTOR(31 downto 0) := (others => '0');
     SIGNAL m_addr : integer range 0 to 1023 := 0;
     SIGNAL m_readdata : std_logic_vector (31 downto 0) := (others => '0'); 
+    signal not_clock : STD_LOGIC;
     
 BEGIN
     -- Initialized memory for reading only
     instr_mem : memory
     PORT MAP (
-        clock => clock,
+        clock => not_clock,
 		writedata => x"0000_0000",
 		address => m_addr,
 		memwrite => '0',
@@ -51,12 +52,15 @@ BEGIN
 		WAITrequest => open
     );
 
+    not_clock <= not clock;
     pc <= new_addr;
     m_addr <= to_integer(unsigned(pc(9 downto 0)))/4;
     fetch_process : process(clock, pc)
     BEGIN
-        if(pc_en = '1') then
+        if(pc_en = '1' and unsigned(pc) < pc'high - 4) then
             q_new_addr <= std_logic_vector(unsigned(pc) + 4); -- increment pc by 4
+        else
+            q_new_addr <= pc;
         end if;
     END process;
 END fetch;
