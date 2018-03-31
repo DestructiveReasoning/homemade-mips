@@ -26,7 +26,7 @@ ARCHITECTURE id of id_stage IS
 	COMPONENT registerfile IS
 		PORT(
 			clock       : IN std_logic;
-			reset       : IN std_logic;                         -- to reset the register file (is this necessary?)
+			reset       : IN std_logic;                         -- to reset the register file 
 			rs          : IN std_logic_vector(4 downto 0);      -- source register number
 			rt          : IN std_logic_vector(4 downto 0);      -- target register number
 			rd          : IN std_logic_vector(4 downto 0);      -- destination register number
@@ -44,6 +44,7 @@ ARCHITECTURE id of id_stage IS
 	SIGNAL i_data_a, i_data_b: STD_LOGIC_VECTOR(31 downto 0);
 --	SIGNAL new_addr: STD_LOGIC_VECTOR(31 downto 0);
 
+  -- constants for figuring out instructions
 	CONSTANT addi: STD_LOGIC_VECTOR(5 downto 0) := "001010";
 	CONSTANT slti: STD_LOGIC_VECTOR(5 downto 0) := "001000";
 	CONSTANT andi: STD_LOGIC_VECTOR(5 downto 0) := "001100";
@@ -81,11 +82,12 @@ BEGIN
 		rt,
 		s_rd,
 		s_write_en,
-		write_reg,
+		write_reg, -- signal to write register contents to disk
 		s_write_data,
 		i_data_a,
 		i_data_b
 	);
+    -- when approaching 10000 cycles dump register contents to disk
     process
     begin
       wait for 9999 ns;
@@ -98,6 +100,7 @@ BEGIN
 	-- ALUSrc = 1 -> Don't use immediate value (else use imm)
 	process(instr, clock, i_data_a, i_data_b, s_rd)
 	BEGIN
+    -- control signal assertions
 		q_pcsrc <= '0';
 		q_memwrite <= '0';
 		q_memread <= '0';
@@ -113,12 +116,14 @@ BEGIN
 		if(op = "000000") then
 			q_regdst <= '1';
 			q_alusrc <= '0';
+      -- for figuring out jr
 			if instr(5 downto 0) = "001000" then
 				q_new_addr <= i_data_a;
 				q_regwrite <= '0';
 			end if;
 		end if;
 		rt <= instr(20 downto 16);
+    -- op is opcode 
 		case op IS
 			WHEN beq|bne =>
 				q_regwrite <= '0';
@@ -137,9 +142,11 @@ BEGIN
 				q_data_b <= (others => '0');
 				q_pcsrc <= '1';
 				-- Assuming PC and PC+4 have the same 4 MSB's
+        -- multiply pc by 4 and pad
 				q_new_addr <= (X"F0000000" and newpc) or (X"0" & instr(25 downto 0) & "00");
 				q_alusrc <= '0';
 			WHEN j =>
+        -- similar to above
 				q_new_addr <= (X"F0000000" and newpc) or (X"0" & instr(25 downto 0) & "00");
 				q_regwrite <= '0';
 			WHEN andi|ori|xori =>

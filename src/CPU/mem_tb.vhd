@@ -5,6 +5,8 @@ use ieee.numeric_std.all;
 entity mem_tb IS
 END mem_tb;
 
+-- Testbed to ensure the written data is stored and reproduced properly	
+	
 ARCHITECTURE tst of mem_tb IS
 	COMPONENT mem_stage is
 		PORT (
@@ -35,6 +37,8 @@ BEGIN
 	);
 	clock <= '0' when finished = '1' else not clock after period/2;
 
+-- Process to store "DEADBEEF" and we assert that the data can be reproduced		
+		
 	test: process
 	BEGIN
 		write_data <= X"DEADBEEF";
