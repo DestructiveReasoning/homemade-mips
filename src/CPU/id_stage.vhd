@@ -152,7 +152,7 @@ BEGIN
 			WHEN j =>
         -- similar to above
 				--q_new_addr <= (X"F0000000" and newpc) or (X"0" & instr(25 downto 0) & "00");
-				q_new_addr <= std_logic_vector(unsigned("0000" & instr(25 downto 0) & "00") - 4);
+				q_new_addr <= std_logic_vector(unsigned("0000" & instr(25 downto 0) & "00"));
 				q_regwrite <= '0';
         flush <= '1';
 			WHEN andi|ori|xori =>
