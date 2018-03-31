@@ -228,6 +228,15 @@ BEGIN
       -- mem to id
         elsif(ex_ctrlsigs_out(regwrite) = '1') then
           if(id_rt = mem_rd) then
+            branching_data_forwarded_rt <= ex_dataa_out;
+            branching_forward_rt <= 1;
+          end if;
+          if(id_rs = mem_rd) then
+            branching_data_forwarded_rs <= ex_dataa_out;
+            branching_forward_rs <= 1;
+          end if;
+        elsif(ex_ctrlsigs_out(memtoreg) = '1') then
+          if(id_rt = mem_rd) then
             branching_data_forwarded_rt <= mem_dataa_in;
             branching_forward_rt <= 1;
           end if;
