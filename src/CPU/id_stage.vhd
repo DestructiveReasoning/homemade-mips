@@ -130,7 +130,7 @@ BEGIN
 			WHEN beq|bne =>
 				q_regwrite <= '0';
 				if op = beq xnor i_data_a = i_data_b then -- xnor handles both bne and beq
-					q_new_addr <= std_logic_vector(unsigned(newpc) + unsigned(X"0000" & instr(15 downto 0)));
+					q_new_addr <= std_logic_vector(unsigned(newpc) + unsigned(b"000000" & instr(15 downto 0) & b"00"));
           flush <= '1';
 				end if;
 			WHEN sw =>
@@ -152,7 +152,7 @@ BEGIN
 			WHEN j =>
         -- similar to above
 				--q_new_addr <= (X"F0000000" and newpc) or (X"0" & instr(25 downto 0) & "00");
-				q_new_addr <= std_logic_vector(unsigned("0000" & instr(25 downto 0) & "00"));
+				q_new_addr <= "0000" & instr(25 downto 0) & "00";
 				q_regwrite <= '0';
         flush <= '1';
 			WHEN andi|ori|xori =>
