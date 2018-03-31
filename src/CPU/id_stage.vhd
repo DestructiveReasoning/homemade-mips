@@ -64,19 +64,22 @@ ARCHITECTURE id of id_stage IS
 	CONSTANT bne: STD_LOGIC_VECTOR(5 downto 0) := "000101";
 
   signal write_reg : std_logic := '0';
+  signal alu_funct : std_logic_vector(4 downto 0);
 BEGIN
 	enc: ALUFunct_Encoder
 	PORT MAP (
 		instr(31 downto 26),
 		instr(5 downto 0),
-		q_instr(30 downto 26)
+    alu_funct -- alu funct will not be outputed for jal
+		--q_instr(30 downto 26)
 	);
 
 	op <= instr(31 downto 26);
 	rs <= instr(25 downto 21);
 	rd <= instr(15 downto 11);
 	q_instr(31) <= '0';
-	q_instr(25 downto 0) <= instr(25 downto 0); -- Gets ALU operation encoding from OP+Funct
+	q_instr(25 downto 21) <= instr(25 downto 21); -- Gets ALU operation encoding from OP+Funct
+	q_instr(15 downto 0) <= instr(15 downto 0); -- Gets ALU operation encoding from OP+Funct
 
 	reg: registerfile
 	PORT MAP (
@@ -121,6 +124,8 @@ BEGIN
 		q_new_addr <= newpc;
 		q_imm(31 downto 16) <= (others => instr(15));
 		q_imm(15 downto 0) <= instr(15 downto 0);
+    q_instr(20 downto 16) <= instr(20 downto 16);
+    q_instr(30 downto 26) <= alu_funct(4 downto 0);
     forwarded_data_a := i_data_a;
     forwarded_data_b := i_data_b;
     -- select data to compare based on forwarding
@@ -153,13 +158,15 @@ BEGIN
 				q_memread <= '1';
 				q_memtoreg <= '1';
 			WHEN jal =>
-				rt <= "11111";
+				-- rt <= "11111";
 				q_data_a <= newpc;
+        q_instr(20 downto 16) <= "11111"; -- set rt = $31 for alu
+        q_instr(30 downto 26) <= (others => '0'); -- set alu function to addi
 				q_data_b <= (others => '0');
 				q_pcsrc <= '1';
 				-- Assuming PC and PC+4 have the same 4 MSB's
         -- multiply pc by 4 and pad
-				q_new_addr <= (X"F0000000" and newpc) or (X"0" & instr(25 downto 0) & "00");
+				q_new_addr <= "0000" & instr(25 downto 0) & "00";
 				q_alusrc <= '0';
 			WHEN j =>
         -- similar to above
