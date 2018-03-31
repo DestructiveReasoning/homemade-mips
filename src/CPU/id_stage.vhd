@@ -12,7 +12,9 @@ ENTITY id_stage IS
 		q_instr, q_newpc, q_data_a, q_data_b, q_imm: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
 		q_memread, q_memwrite, q_alusrc, q_pcsrc, q_regwrite, q_regdst, q_memtoreg: OUT STD_LOGIC;
 		q_new_addr: OUT STD_LOGIC_VECTOR(31 downto 0);
-    branching : out STD_LOGIC
+    branching : out STD_LOGIC;
+    forwarded_rs, forwarded_rt : integer range 0 to 1;
+    forwarded_rs_data, forwarded_rt_data : STD_LOGIC_VECTOR(31 downto 0)
 	);
 END id_stage;
 
@@ -100,6 +102,7 @@ BEGIN
 	-- RegDst = 1 -> Write back to rd (else write back into rt)
 	-- ALUSrc = 1 -> Don't use immediate value (else use imm)
 	process(instr, clock, i_data_a, i_data_b, s_rd)
+    variable forwarded_data_a, forwarded_data_b : STD_LOGIC_VECTOR(31 downto 0);
 	BEGIN
     -- control signal assertions
 		q_pcsrc <= '0';
@@ -128,10 +131,21 @@ BEGIN
     -- op is opcode 
 		case op IS
 			WHEN beq|bne =>
+        branching <= '1';
 				q_regwrite <= '0';
-				if op = beq xnor i_data_a = i_data_b then -- xnor handles both bne and beq
+
+        -- select data to compare based on forwarding
+        case forwarded_rs is
+          when 0 => forwarded_data_a := i_data_a;
+          when 1 => forwarded_data_a := forwarded_rs_data;
+        end case;
+        case forwarded_rt is
+          when 0 => forwarded_data_b := i_data_b;
+          when 1 => forwarded_data_b := forwarded_rt_data;
+        end case;
+
+        if op = beq xnor forwarded_data_a = forwarded_data_b then -- xnor handles both bne and beq
 					q_new_addr <= std_logic_vector(unsigned(newpc) + unsigned(b"000000" & instr(15 downto 0) & b"00"));
-          branching <= '1';
 				end if;
 			WHEN sw =>
 				q_memwrite <= '1';
