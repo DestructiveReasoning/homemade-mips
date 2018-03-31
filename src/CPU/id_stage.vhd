@@ -93,7 +93,7 @@ BEGIN
 	);
 
 
-  branching <= '1' when (op = bne or op = beq) else '0';
+  branching <= '1' when (op = bne or op = beq or (op = "000000" and instr(5 downto 0) = "001000" )) else '0';
     -- when approaching 10000 cycles dump register contents to disk
     process
     begin
@@ -123,12 +123,17 @@ BEGIN
 		q_imm(15 downto 0) <= instr(15 downto 0);
     forwarded_data_a := i_data_a;
     forwarded_data_b := i_data_b;
+    -- select data to compare based on forwarding
+    if forwarded_rs = 1 then forwarded_data_a := forwarded_rs_data;
+    end if;
+    if forwarded_rt = 1 then forwarded_data_b := forwarded_rt_data;
+    end if;
 		if(op = "000000") then
 			q_regdst <= '1';
 			q_alusrc <= '0';
       -- for figuring out jr
 			if instr(5 downto 0) = "001000" then
-				q_new_addr <= i_data_a;
+        q_new_addr <= forwarded_data_a;
 				q_regwrite <= '0';
 			end if;
 		end if;
@@ -137,13 +142,6 @@ BEGIN
 		case op IS
 			WHEN beq|bne =>
 				q_regwrite <= '0';
-
-        -- select data to compare based on forwarding
-        if forwarded_rs = 1 then forwarded_data_a := forwarded_rs_data;
-        end if;
-        if forwarded_rt = 1 then forwarded_data_b := forwarded_rt_data;
-        end if;
-
         if op = beq xnor forwarded_data_a = forwarded_data_b then -- xnor handles both bne and beq
 					q_new_addr <= std_logic_vector(unsigned(newpc) + unsigned(b"000000" & instr(15 downto 0) & b"00"));
 				end if;
