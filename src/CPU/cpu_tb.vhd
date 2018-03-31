@@ -37,6 +37,8 @@ ARCHITECTURE mips OF CPU_TB IS
         PORT (
             clock: IN STD_LOGIC;
             reset: IN STD_LOGIC;
+            s_clr: in STD_LOGIC;
+        stall:in STD_LOGIC;
             instr, newpc, data_a, data_b, imm                               : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
             memread, memwrite, alusrc, pcsrc, regwrite, regdst, memtoreg    : IN STD_LOGIC;
             q_instr, q_newpc, q_data_a, q_data_b, q_imm                     : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
@@ -112,6 +114,7 @@ ARCHITECTURE mips OF CPU_TB IS
 	signal reset_id: std_logic := '0';
 	signal pc_addr: std_logic_vector(31 downto 0);
 
+  signal write_reg : std_logic := '0';
 BEGIN
     -- STALLING LOGIC
     -- This may need some work
@@ -136,7 +139,7 @@ BEGIN
         end if;
     END PROCESS;
 
-	reset_id <= reset or (not stall);
+	reset_id <=  (not stall);
 	pc_addr <= the_new_addr when reset = '0' else X"00000000";
 
     fetch: if_stage
@@ -152,6 +155,8 @@ BEGIN
     PORT MAP (
         clock,
         reset,                                -- the IF/ID reg is never reset
+        '0',
+        reset_id,
         if_instr_in,                        -- pull instr from IF stage
         if_newpc_in,                        -- propagate PC+4 for next addr calculation
         (others => '0'),                    -- data not decoded yet
@@ -183,7 +188,9 @@ BEGIN
     id_ex: pipe_reg
     PORT MAP (
         clock,
+        reset,
 		reset_id, -- Clear out the id/ex (turn instruction into nop) when stalling
+    '0',
         -- pull all pipeline register contents from the decoding from the ID stage
         id_instr_in, id_newpc_in, id_dataa_in, id_datab_in, id_imm_in,
         id_ctrlsigs_in(memread), id_ctrlsigs_in(memwrite), id_ctrlsigs_in(alusrc),
@@ -255,6 +262,8 @@ BEGIN
     PORT MAP (
         clock,
 		reset,
+    '0',
+    '0',
         -- place ALU output in data A section
         ex_instr_in, id_newpc_out, ex_alures, ex_forward_prealusrc, id_imm_out,
         id_ctrlsigs_out(memread), id_ctrlsigs_out(memwrite), id_ctrlsigs_out(alusrc),
@@ -289,6 +298,8 @@ BEGIN
     PORT MAP (
         clock,
         reset,
+    '0',
+    '0',
         ex_instr_out, ex_newpc_out, mem_dataa_in, ex_dataa_out, ex_imm_out,
         ex_ctrlsigs_out(memread), ex_ctrlsigs_out(memwrite), ex_ctrlsigs_out(alusrc),
         ex_ctrlsigs_out(pcsrc), ex_ctrlsigs_out(regwrite), ex_ctrlsigs_out(regdst), ex_ctrlsigs_out(memtoreg),

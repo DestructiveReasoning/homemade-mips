@@ -58,6 +58,7 @@ ARCHITECTURE id of id_stage IS
 	CONSTANT beq: STD_LOGIC_VECTOR(5 downto 0) := "000100";
 	CONSTANT bne: STD_LOGIC_VECTOR(5 downto 0) := "000101";
 
+  signal write_reg : std_logic := '0';
 BEGIN
 	enc: ALUFunct_Encoder
 	PORT MAP (
@@ -80,11 +81,19 @@ BEGIN
 		rt,
 		s_rd,
 		s_write_en,
-		'1',
+		write_reg,
 		s_write_data,
 		i_data_a,
 		i_data_b
 	);
+    process
+    begin
+      wait for 9999 ns;
+      write_reg <= '1';
+      wait for 1 ns;
+      write_reg <= '0';
+      wait for 1 ns;
+    end process;
 	-- RegDst = 1 -> Write back to rd (else write back into rt)
 	-- ALUSrc = 1 -> Don't use immediate value (else use imm)
 	process(instr, clock, i_data_a, i_data_b, s_rd)
