@@ -13,7 +13,8 @@ entity mem_stage is
 END mem_stage;
 
 ARCHITECTURE mem OF mem_stage IS
---Declare the memory component:
+    
+-- Declaring the memory component:
 
     COMPONENT memory IS
         GENERIC(
@@ -33,7 +34,8 @@ ARCHITECTURE mem OF mem_stage IS
         );
     END COMPONENT;
 
-  --all the input signals with initial values
+  -- All the memory block input signals with initial values
+    
     signal writedata: std_logic_vector(31 downto 0);
     signal address: INTEGER RANGE 0 TO 32768-1;
     signal memwrite: STD_LOGIC := '0';
@@ -43,8 +45,7 @@ ARCHITECTURE mem OF mem_stage IS
     
     signal i_addr : integer := to_integer(unsigned(addr));
 
--- Value from ALU to store, then address from, open up internal memory and write to address then store data in that
--- Include the part where it dumps to disk, include this from register vhd, logic to write to disk is there
+-- Map internal memory component to the signals we take in mem_stage
 
 BEGIN
     i_addr <= to_integer(unsigned(addr))/4;
