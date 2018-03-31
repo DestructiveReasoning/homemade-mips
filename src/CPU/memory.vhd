@@ -18,7 +18,7 @@ ENTITY memory IS
 		address: IN INTEGER RANGE 0 TO ram_size-1;
 		memwrite: IN STD_LOGIC;
 		memread: IN STD_LOGIC;
-		readdata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0); -- 32 bit again
+		readdata: OUT STD_LOGIC_VECTOR (31 DOWNTO 0); -- Changed again to 32 bit
 		waitrequest: OUT STD_LOGIC
 	);
 END memory;
