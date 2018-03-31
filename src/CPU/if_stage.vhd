@@ -36,7 +36,7 @@ ARCHITECTURE fetch OF if_stage IS
     -- SIGNALS
     SIGNAL pc: STD_LOGIC_VECTOR(31 downto 0) := (others => '0');
     SIGNAL m_addr : integer range 0 to 1023 := 0;
-	SIGNAL m_readdata : std_logic_vector (31 downto 0) := (others => '0'); 
+    SIGNAL m_readdata : std_logic_vector (31 downto 0) := (others => '0'); 
     
 BEGIN
     -- Initialized memory for reading only
