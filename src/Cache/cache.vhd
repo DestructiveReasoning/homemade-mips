@@ -141,6 +141,7 @@ begin
 					valids(index)(queues(index)) <= '1'; -- Newly-read block is always valid
 					tags_vector(index)(queues(index)) <= tag;
 					
+					-- TODO: Edited to read FULL BLOCK from memory. This needs to be reviewed
 					if(m_waitrequest = '0') then
 						cache(index)(queues(index))(word_index)((byte_index + 1) * 8 - 1 downto byte_index * 8) <= m_readdata; -- Read appropriate byte from word
 						byte_index := byte_index + 1;
@@ -164,6 +165,7 @@ begin
 				WHEN MEM_WRITE =>
 					-- Memory writes are only ever called when replacing a dirty block, whether it's with a read or a write
 					-- Must transition to a memory read always after a memory write, to bring appropriate block into cache
+					-- TODO: Edited to write FULL BLOCK to memory. This needs to be reviewed
 					if(byte_index = 4) then
 						byte_index := 0;
 						word_index := word_index + 1;
