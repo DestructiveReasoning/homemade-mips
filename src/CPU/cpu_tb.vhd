@@ -29,7 +29,10 @@ ARCHITECTURE mips OF CPU_TB IS
             s_rd: IN STD_LOGIC_VECTOR(4 downto 0);
             q_instr, q_newpc, q_data_a, q_data_b, q_imm: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
             q_memread, q_memwrite, q_alusrc, q_pcsrc, q_regwrite, q_regdst, q_memtoreg: OUT STD_LOGIC;
-            q_new_addr: OUT STD_LOGIC_VECTOR(31 downto 0)
+            q_new_addr: OUT STD_LOGIC_VECTOR(31 downto 0);
+            branching : out STD_LOGIC;
+            forwarded_rs, forwarded_rt : integer range 0 to 1;
+            forwarded_rs_data, forwarded_rt_data : STD_LOGIC_VECTOR(31 downto 0)
         );
     END COMPONENT;
 
@@ -118,6 +121,23 @@ ARCHITECTURE mips OF CPU_TB IS
 	signal reset_id: std_logic := '0'; -- signal to clear ID/EX and freeze IF/ID
 	signal pc_addr: std_logic_vector(31 downto 0);
 
+  -- old forwarding mechanism
+  signal branching : STD_LOGIC;
+  signal branching_data_forwarded : std_logic_vector(31 downto 0);
+  signal branching_rd_forwarded : std_logic_vector(4 downto 0);
+  signal branching_regwrite : STD_LOGIC;
+
+  -- new mechanism
+  -- data being forwarded to id_stage for branching
+  signal branching_data_forwarded_rs : std_logic_vector(31 downto 0);
+  signal branching_data_forwarded_rt : std_logic_vector(31 downto 0);
+  -- which registers' data is actually being forwarded
+  -- 0 = no forwarding
+  -- 1 = from alu
+  -- 2 = from mem
+  signal branching_forward_rt : integer range 0 to 1;
+  signal branching_forward_rs : integer range 0 to 1;
+
   signal write_reg : std_logic := '0';
 BEGIN
     -- STALLING LOGIC
@@ -176,17 +196,72 @@ BEGIN
         open, open, open, open, open, open, open
     );
 
+    -- forward data from ex or mem if branching decision registers being modified in previous instrucitons
+    -- ex priority over mem
+    branching_forwarding: process(branching, reset, wb_data, mem_instr_out, mem_ctrlsigs_out, if_instr_out, id_instr_out, ex_instr_out, ex_instr_in)
+      variable id_rt : std_logic_vector(4 downto 0) := if_instr_out(20 downto 16);
+      variable id_rs : std_logic_vector(4 downto 0) := if_instr_out(25 downto 21);
+      -- register numbers in ex stage
+      variable ex_rd : std_logic_vector(4 downto 0) := ex_instr_in(15 downto 11);
+      -- register numbers in mem stage
+      variable mem_rd : std_logic_vector(4 downto 0) := ex_instr_out(15 downto 11);
+    begin
+      id_rt := if_instr_out(20 downto 16);
+      id_rs := if_instr_out(25 downto 21);
+      ex_rd := ex_instr_in(15 downto 11);
+      mem_rd := ex_instr_out(15 downto 11);
+
+      branching_forward_rt <= 0;
+      branching_forward_rs <= 0;
+
+      if(branching = '1') then
+      -- ex to id
+        if(id_ctrlsigs_out(regwrite) = '1') then
+          if(id_rt = ex_rd) then
+            branching_data_forwarded_rt <= ex_alures;
+            branching_forward_rt <= 1;
+          end if;
+          if(id_rs = ex_rd) then
+            branching_data_forwarded_rs <= ex_alures;
+            branching_forward_rs <= 1;
+          end if;
+      -- mem to id
+        elsif(ex_ctrlsigs_out(regwrite) = '1') then
+          if(id_rt = mem_rd) then
+            branching_data_forwarded_rt <= ex_dataa_out;
+            branching_forward_rt <= 1;
+          end if;
+          if(id_rs = mem_rd) then
+            branching_data_forwarded_rs <= ex_dataa_out;
+            branching_forward_rs <= 1;
+          end if;
+        elsif(ex_ctrlsigs_out(memtoreg) = '1') then
+          if(id_rt = mem_rd) then
+            branching_data_forwarded_rt <= mem_dataa_in;
+            branching_forward_rt <= 1;
+          end if;
+          if(id_rs = mem_rd) then
+            branching_data_forwarded_rs <= mem_dataa_in;
+            branching_forward_rs <= 1;
+          end if;
+        end if;
+      end if;
+    end process;
+
     decode: id_stage
     PORT MAP (
 	if_newpc_out, if_instr_out, -- grab PC and instr from IF/ID register
         clock,
-		mem_ctrlsigs_out(regwrite), -- controls when to write to the register file
-        wb_data,					-- data to write to the register file comes from Wb
+        mem_ctrlsigs_out(regwrite), -- controls when to write to the register file
+        wb_data,                                       -- data to write to the register file comes from Wb
         mem_instr_out(15 downto 11), -- register number to write to (rd or rt)
         id_instr_in, id_newpc_in, id_dataa_in, id_datab_in, id_imm_in,
         id_ctrlsigs_in(memread), id_ctrlsigs_in(memwrite), id_ctrlsigs_in(alusrc),
         id_ctrlsigs_in(pcsrc), id_ctrlsigs_in(regwrite), id_ctrlsigs_in(regdst), id_ctrlsigs_in(memtoreg),
-        the_new_addr
+        the_new_addr,
+        branching,
+        branching_forward_rs, branching_forward_rt,
+        branching_data_forwarded_rs, branching_data_forwarded_rt
     );
 
     id_ex: pipe_reg
