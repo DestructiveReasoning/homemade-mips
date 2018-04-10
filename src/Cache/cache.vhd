@@ -119,6 +119,9 @@ begin
 						state <= MEM_READ;
 					end if;
 				WHEN HIT =>
+					-- If we're in the HIT state,
+					-- we know that the desired word is in the cache
+					-- therefore the correct tag is guaranteed to be in the set
 					s_readdata <= cache(index)(0)(word_offset);
 					FOR i IN 0 TO SLOTS_PER_SET-1 LOOP
 						IF tag = tags_vector(index)(i) THEN
@@ -161,7 +164,6 @@ begin
 						byte_index := byte_index + 1;
 						m_write <= '0';
 					else
---						m_addr <= to_integer(unsigned(tags_vector(index))) * 512 + index * 16 + word_offset*4 + byte_index;
 						--TODO: Implement more clever eviction policy
 						m_addr <= to_integer(unsigned(tags_vector(index)(queues(index))))*(2**(2+word_bits+set_bits)) + index*(2**(2+word_bits)) + word_offset*4 + byte_index;
 						m_writedata <= cache(index)(queues(index))(word_offset)((byte_index + 1) * 8 - 1 downto byte_index * 8);
@@ -173,8 +175,6 @@ begin
 	end process;
 
 --	s_readdata <= cache(index)(word_offset);					-- We can continuously update this output because the processor will only read it in the HIT state
-	--m_read <= '1' WHEN state = MEM_READ ELSE '0';
-	--m_write <= '1' WHEN state = MEM_WRITE ELSE '0';
 	tag <= s_addr(14 downto (word_bits+set_bits+2));
 	index <= to_integer(unsigned(s_addr((word_bits + set_bits + 2 - 1) downto (word_bits + 2))));
 	word_offset <= to_integer(unsigned(s_addr((word_bits + 2 - 1) downto 2)));
