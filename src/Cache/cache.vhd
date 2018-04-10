@@ -33,16 +33,26 @@ architecture arch of cache is
 
 -- declare signals here
 
-	CONSTANT SETS: INTEGER := (2**set_bits);
+	CONSTANT SETS: INTEGER := (2**set_bits);		-- Amount of sets in cache
+	CONSTANT SLOTS_PER_SET: INTEGER := 32-SETS + 1;	-- Amount of slots in each set
 
 	TYPE BLOCK_TYPE IS ARRAY((2**word_bits)-1 downto 0) OF STD_LOGIC_VECTOR(31 downto 0);
-	TYPE SET_TYPE IS ARRAY(SETS-1 downto 0) OF BLOCK_TYPE;
-	TYPE CACHE_TYPE IS ARRAY(32-SETS downto 0) OF SET_TYPE;
-	TYPE TAG_SET_TYPE IS ARRAY(32-SETS downto 0) OF STD_LOGIC_VECTOR(15-(word_bits+set_bits+2+1) downto 0);
+	TYPE SET_TYPE IS ARRAY(SLOTS_PER_SET-1 downto 0) OF BLOCK_TYPE;
+	TYPE CACHE_TYPE IS ARRAY(SETS-1 downto 0) OF SET_TYPE;
+
+	-- Array of tags for all entries in a given set
+	TYPE TAG_SET_TYPE IS ARRAY(SLOTS_PER_SET-1 downto 0) OF STD_LOGIC_VECTOR(15-(word_bits+set_bits+2+1) downto 0);
+	-- Array of tag arrays, one for each set
 	TYPE TAG_TYPE IS ARRAY(SETS-1 downto 0) OF TAG_SET_TYPE;
+
 	TYPE STATE_TYPE IS (POWERON, MEM_READ, MEM_WRITE, HIT, IDLE, CACHE_MISS);
-	TYPE VALIDS_TYPE IS ARRAY(SETS-1 downto 0) OF STD_LOGIC_VECTOR(32-SETS downto 0);
-	TYPE QUEUE_HEADS IS ARRAY(SETS-1 downto 0) OF INTEGER RANGE 0 TO (32-SETS);
+	TYPE VALIDS_TYPE IS ARRAY(SETS-1 downto 0) OF STD_LOGIC_VECTOR(SLOTS_PER_SET-1 downto 0);
+
+	-- At each cell in array, store a number corresponding to the next index 
+	-- to be overwritten in a set
+	-- The appropriate queue head will be incremented (circularly) at each cache miss on the given set
+	TYPE QUEUE_HEADS IS ARRAY(SETS-1 downto 0) OF INTEGER RANGE 0 TO (SLOTS_PER_SET-1);
+
 	SIGNAL valids: VALIDS_TYPE := (others => (others => '0'));					-- Stores the valid bit for each cache entry
 	SIGNAL dirty: VALIDS_TYPE := (others => (others => '0'));					-- Stores the valid bit for each cache entry
 	SIGNAL cache: CACHE_TYPE;
@@ -51,13 +61,9 @@ architecture arch of cache is
 	SIGNAL tag: STD_LOGIC_VECTOR(15-(word_bits+set_bits+2+1) downto 0);			-- Stores extracted tag from input address
 	SIGNAL word_offset: integer range 0 to (2**word_bits)-1;					-- Stores extracted word offset from input address
 	SIGNAL byte_offset: integer range 0 to 3;									-- Stores extracted byte offset from input address (should always be 0 if aligned)
-	SIGNAL index: integer range 0 to SETS-1;							-- Stores extracted index from input address
-	signal bin_idx : std_logic_vector(4 downto 0);
+	SIGNAL index: integer range 0 to SETS-1;									-- Stores extracted index from input address
 	SIGNAL queues: QUEUE_HEADS := (others => 0);
 begin
-
--- s_addr format (T - tag, I - index, W - word offset, B - byte offset):
--- TTTTTTIIIIIWWBB
 
 -- make circuits here
 	machine: process(clock, reset)
@@ -77,25 +83,28 @@ begin
 					state <= IDLE;
 				WHEN IDLE => -- Main waiting state
 					if(s_read = '1') THEN
+						state <= CACHE_MISS;
+						byte_index := 0;
+						-- search for matching tag in set
+						-- TODO: Add delay?
 						FOR i in 0 to SETS - 1 LOOP
 							if(tag = tags_vector(index)(i) and valids(index)(i) = '1') then
 								state <= HIT; -- Indicates that the cache's job is done
-							else 
-								byte_index := 0;
-								state <= CACHE_MISS;
 							end if;
 						END LOOP;
 					elsif(s_write = '1') THEN
 						data := s_writedata;
+						byte_index := 0;
+						write_miss := '1';
+						state <= CACHE_MISS;
+						-- search for matching tag in set
+						-- TODO: Add delay?
 						FOR i in 0 to SETS - 1 LOOP
 							if(tag = tags_vector(index)(i) and valids(index)(i) = '1') then
 								cache(index)(i)(word_offset) <= data;
 								dirty(index)(i) <= '1';
+								write_miss := '0';
 								state <= HIT;
-							else 
-								byte_index := 0;
-								write_miss := '1';
-								state <= CACHE_MISS;
 							end if;
 						END LOOP;
 					end if;
@@ -103,9 +112,7 @@ begin
 					-- Upon cache miss, regardless of read or write, must check if block is dirty
 					-- If dirty, always write to memory
 					-- TODO: Implement more clever eviction policy
-					IF 32-SETS /= 0 THEN
-						queues(index) <= (queues(index) + 1) rem (32-SETS);
-					END IF;
+					queues(index) <= (queues(index) + 1) rem SLOTS_PER_SET;
 					if(dirty(index)(queues(index)) = '1') then
 						state <= MEM_WRITE;
 					else
@@ -113,7 +120,7 @@ begin
 					end if;
 				WHEN HIT =>
 					s_readdata <= cache(index)(0)(word_offset);
-					FOR i IN 0 TO (32 - SETS) LOOP
+					FOR i IN 0 TO SLOTS_PER_SET-1 LOOP
 						IF tag = tags_vector(index)(i) THEN
 							s_readdata <= cache(index)(i)(word_offset);
 						END IF;
