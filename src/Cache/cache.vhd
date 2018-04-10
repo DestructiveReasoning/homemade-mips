@@ -69,6 +69,7 @@ begin
 	machine: process(clock, reset)
 		VARIABLE data: STD_LOGIC_VECTOR(31 downto 0) := (others => '0');			-- Stores data that is to be written to main memory
 		VARIABLE byte_index: integer range 0 to 4 := 0;								-- Counts the byte (within a word) that is currently being read/written
+		VARIABLE word_index: integer range 0 to (2**word_bits) := 0;				-- Counts the word (within a block) that is currently being read/written
 		VARIABLE write_miss: std_logic := '0';										-- Indicates if the cache miss came from a read or a write
 	begin
 		if(reset = '1') then
@@ -85,6 +86,7 @@ begin
 					if(s_read = '1') THEN
 						state <= CACHE_MISS;
 						byte_index := 0;
+						word_index := 0;
 						-- search for matching tag in set
 						-- TODO: Add delay?
 						FOR i in 0 to SETS - 1 LOOP
@@ -95,6 +97,7 @@ begin
 					elsif(s_write = '1') THEN
 						data := s_writedata;
 						byte_index := 0;
+						word_index := 0;
 						write_miss := '1';
 						state <= CACHE_MISS;
 						-- search for matching tag in set
@@ -130,7 +133,7 @@ begin
 					END LOOP;
 					state <= IDLE; -- Set waitrequest LOW for one clock cycle
 				WHEN MEM_READ =>
-					m_addr <= to_integer(unsigned(tag))*(2**(2+word_bits+set_bits)) + index*(2**(2+word_bits)) + word_offset*4 + byte_index;
+					m_addr <= to_integer(unsigned(tag))*(2**(2+word_bits+set_bits)) + index*(2**(2+word_bits)) + word_index*4 + byte_index;
 					m_read <= '1';
 
 					--TODO: Implement more clever eviction policy
@@ -139,18 +142,23 @@ begin
 					tags_vector(index)(queues(index)) <= tag;
 					
 					if(m_waitrequest = '0') then
-						cache(index)(queues(index))(word_offset)((byte_index + 1) * 8 - 1 downto byte_index * 8) <= m_readdata; -- Read appropriate byte from word
+						cache(index)(queues(index))(word_index)((byte_index + 1) * 8 - 1 downto byte_index * 8) <= m_readdata; -- Read appropriate byte from word
 						byte_index := byte_index + 1;
 						m_read <= '0';
 						if(byte_index = 4) then
-							if(write_miss = '1') then
-								write_miss := '0';
-								cache(index)(queues(index))(word_offset) <= data; -- When finished reading, write appropriate word in block if a write was requested
-								dirty(index)(queues(index)) <= '1';
-							end if;
-							state <= HIT;
 							byte_index := 0;
-							m_read <= '0';
+							word_index := word_index + 1;
+							-- Check if full block was read
+							if(word_index = (2**word_bits)) THEN
+								if(write_miss = '1') then
+									write_miss := '0';
+									cache(index)(queues(index))(word_offset) <= data; -- When finished reading, write appropriate word in block if a write was requested
+									dirty(index)(queues(index)) <= '1';
+								end if;
+								state <= HIT;
+								word_index := 0;
+								m_read <= '0';
+							END IF;
 						end if;
 					end if;
 				WHEN MEM_WRITE =>
@@ -158,15 +166,19 @@ begin
 					-- Must transition to a memory read always after a memory write, to bring appropriate block into cache
 					if(byte_index = 4) then
 						byte_index := 0;
-						m_write <= '0';
-						state <= MEM_READ;
+						word_index := word_index + 1;
+						if(word_index = (2**word_bits)) THEN
+							word_index := 0;
+							m_write <= '0';
+							state <= MEM_READ;
+						END IF;
 					elsif(m_waitrequest = '0') then
 						byte_index := byte_index + 1;
 						m_write <= '0';
 					else
 						--TODO: Implement more clever eviction policy
-						m_addr <= to_integer(unsigned(tags_vector(index)(queues(index))))*(2**(2+word_bits+set_bits)) + index*(2**(2+word_bits)) + word_offset*4 + byte_index;
-						m_writedata <= cache(index)(queues(index))(word_offset)((byte_index + 1) * 8 - 1 downto byte_index * 8);
+						m_addr <= to_integer(unsigned(tags_vector(index)(queues(index))))*(2**(2+word_bits+set_bits)) + index*(2**(2+word_bits)) + word_index*4 + byte_index;
+						m_writedata <= cache(index)(queues(index))(word_index)((byte_index + 1) * 8 - 1 downto byte_index * 8);
 						m_write <= '1';
 					end if;
 				WHEN others => null;
