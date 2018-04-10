@@ -31,10 +31,28 @@ end cache;
 
 architecture arch of cache is
 
+	-------------------------------------------------
+	-- A QUICK NOTE ABOUT THE EVICTION POLICY      --
+	--                                             --
+	-- Say each set has n blocks                   --
+	-- When reading/writing from/to memory,        --
+	-- we must now decide which block to replace   --
+	-- Therefore, we need an eviction policy       --
+	-- The current implementation is simple,       --
+	-- without being utterly useless               --
+	-- Assigned to each set is an integer in [0,n) --
+	-- This integer is the index of the block that --
+	-- will be replaced next in that set           --
+	-- Each time there is a cache miss, the        --
+	-- corresponding set's integer is incremented  --
+	-- This changes which block is replaced        --
+	-- These integers are in the 'queues' signal   --
+	-------------------------------------------------
+
 -- declare signals here
 
 	CONSTANT SETS: INTEGER := (2**set_bits);		-- Amount of sets in cache
-	CONSTANT SLOTS_PER_SET: INTEGER := 32-SETS + 1;	-- Amount of slots in each set
+	CONSTANT SLOTS_PER_SET: INTEGER := 32-SETS + 1;	-- Amount of slots (blocks) in each set
 
 	TYPE BLOCK_TYPE IS ARRAY((2**word_bits)-1 downto 0) OF STD_LOGIC_VECTOR(31 downto 0);
 	TYPE SET_TYPE IS ARRAY(SLOTS_PER_SET-1 downto 0) OF BLOCK_TYPE;
