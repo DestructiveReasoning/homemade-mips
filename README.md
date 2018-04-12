@@ -21,3 +21,15 @@ Hazard Detection: Stalls instructions in ID when a required operand is not ready
 Forwarding: Take results from EX/ME and ME/WB pipeline registers and make them available as ALU inputs. Recommended that you implement forwarding second, after hazard detection has been tested. <br />
 Memory: Instantiate two memories, one for instructions and one for data. Use the model provided previously from P3. Keep data memory sized at 32768 bytes. Processor can run a program of at most 1024 instructions. <br />
 Testbench: Testbench reads a program called "program.txt" and write final contents of the register file to a text called "register_file.txt".
+
+
+Project 5<br />
+TODO:<br />
+-   Slow down MEM
+-   Freeze WB
+-   Migrate P3 cache to P5, generalize the cache to have arbitrary block size, cache size, set size
+-   Add extra ports to memory, double access if writing and reading to mem at same CC
+-   Fix timing and stalls
+-   Prepare test outline/experiments
+-   Code test bench
+-   Data from simulator CACTI
