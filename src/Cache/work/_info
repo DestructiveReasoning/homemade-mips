@@ -1,0 +1,116 @@
+m255
+K3
+13
+cModel Technology
+Z0 d/home/harwiltz/homemade-mips/src/Cache
+Ecache
+Z1 w1523578626
+Z2 DPx4 ieee 11 numeric_std 0 22 O3PF8EB`?j9=z7KT`fn941
+Z3 DPx3 std 6 textio 0 22 5>J:;AW>W0[[dW0I6EN1Q0
+Z4 DPx4 ieee 14 std_logic_1164 0 22 5=aWaoGZSMWIcH0i^f`XF1
+Z5 d/home/harwiltz/homemade-mips/src/Cache
+Z6 8cache.vhd
+Z7 Fcache.vhd
+l0
+L5
+VZgkbB8G;HicW8mOCc=POR3
+Z8 OV;C;10.1d;51
+32
+Z9 !s108 1523578635.844917
+Z10 !s90 -reportprogress|300|cache.vhd|
+Z11 !s107 cache.vhd|
+o-O0
+Z12 tExplicit 1
+!s100 KjaZ:`k[S2BUB=E6g?74b2
+!i10b 1
+Aarch
+R2
+R3
+R4
+DEx4 work 5 cache 0 22 ZgkbB8G;HicW8mOCc=POR3
+l84
+L32
+V5JBzfjM@i=OaV?MEM2QiU2
+R8
+32
+R9
+R10
+R11
+o-O0
+R12
+!s100 [<0jH`aMfdhP=Y:VI1FfF3
+!i10b 1
+Ecache_tb
+Z13 w1523320007
+R2
+R3
+R4
+R5
+Z14 8cache_tb.vhd
+Z15 Fcache_tb.vhd
+l0
+L5
+VhaX0iVRQi5d3>5Rb8YYnI3
+R8
+32
+Z16 !s108 1523578635.880452
+Z17 !s90 -reportprogress|300|cache_tb.vhd|
+Z18 !s107 cache_tb.vhd|
+o-O0
+R12
+!s100 ]fh1bOYc^igY:D8iI@<HI2
+!i10b 1
+Abehavior
+R2
+R3
+R4
+DEx4 work 8 cache_tb 0 22 haX0iVRQi5d3>5Rb8YYnI3
+l76
+L8
+Vo]<1kFYd]AcRQjXEaYHif1
+!s100 SPk>Wn6:hT?eWd:IX8dW41
+R8
+32
+R16
+R17
+R18
+o-O0
+R12
+!i10b 1
+Ememory
+R13
+R2
+R3
+R4
+R5
+Z19 8memory.vhd
+Z20 Fmemory.vhd
+l0
+L6
+V8158ci`AC>8?HV1LdBXOR0
+!s100 W0Q2kiG[JW]=VB46Ng>4]1
+R8
+32
+!i10b 1
+Z21 !s108 1523578635.913074
+Z22 !s90 -reportprogress|300|memory.vhd|
+Z23 !s107 memory.vhd|
+o-O0
+R12
+Artl
+R2
+R3
+R4
+Z24 DEx4 work 6 memory 0 22 8158ci`AC>8?HV1LdBXOR0
+l29
+L23
+Z25 V[fh9WlMTT=WNH07:UMZfo2
+Z26 !s100 dMJ40lXn9_T1^0Y]Df4[A3
+R8
+32
+!i10b 1
+R21
+R22
+R23
+o-O0
+R12

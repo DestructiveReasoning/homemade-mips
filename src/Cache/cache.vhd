@@ -107,7 +107,7 @@ begin
 						word_index := 0;
 						-- search for matching tag in set
 						-- TODO: Add delay?
-						FOR i in 0 to SETS - 1 LOOP
+						FOR i in 0 to SLOTS_PER_SET - 1 LOOP
 							if(tag = tags_vector(index)(i) and valids(index)(i) = '1') then
 								state <= HIT; -- Indicates that the cache's job is done
 							end if;
@@ -120,7 +120,7 @@ begin
 						state <= CACHE_MISS;
 						-- search for matching tag in set
 						-- TODO: Add delay?
-						FOR i in 0 to SETS - 1 LOOP
+						FOR i in 0 to SLOTS_PER_SET - 1 LOOP
 							if(tag = tags_vector(index)(i) and valids(index)(i) = '1') then
 								cache(index)(i)(word_offset) <= data;
 								dirty(index)(i) <= '1';
