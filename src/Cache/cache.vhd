@@ -52,7 +52,7 @@ architecture arch of cache is
 -- declare signals here
 
     CONSTANT SETS: INTEGER := (2**set_bits);        -- Amount of sets in cache
-    CONSTANT SLOTS_PER_SET: INTEGER := 32-SETS + 1; -- Amount of slots (blocks) in each set
+    CONSTANT SLOTS_PER_SET: INTEGER := (2**(5-set_bits)); -- Amount of slots (blocks) in each set
 
     TYPE BLOCK_TYPE IS ARRAY((2**word_bits)-1 downto 0) OF STD_LOGIC_VECTOR(31 downto 0);
     TYPE SET_TYPE IS ARRAY(SLOTS_PER_SET-1 downto 0) OF BLOCK_TYPE;
