@@ -5,3 +5,5 @@
 *.log
 *.out
 **/*.swp
+**/work/*
+**/*.wlf
