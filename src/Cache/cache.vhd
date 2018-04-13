@@ -143,12 +143,12 @@ begin
 					-- If we're in the HIT state,
 					-- we know that the desired word is in the cache
 					-- therefore the correct tag is guaranteed to be in the set
-					s_readdata <= cache(index)(0)(word_offset);
-					FOR i IN 0 TO SLOTS_PER_SET-1 LOOP
-						IF tag = tags_vector(index)(i) THEN
-							s_readdata <= cache(index)(i)(word_offset);
-						END IF;
-					END LOOP;
+--					s_readdata <= cache(index)(0)(word_offset);
+--					FOR i IN 0 TO SLOTS_PER_SET-1 LOOP
+--						IF tag = tags_vector(index)(i) THEN
+--							s_readdata <= cache(index)(i)(word_offset);
+--						END IF;
+--					END LOOP;
 					state <= IDLE; -- Set waitrequest LOW for one clock cycle
 				WHEN MEM_READ =>
 					m_addr <= to_integer(unsigned(tag))*(2**(2+word_bits+set_bits)) + index*(2**(2+word_bits)) + word_index*4 + byte_index;
@@ -205,6 +205,16 @@ begin
 			end case;
 		end if;
 	end process;
+
+	output_read: process(s_addr, index, tag, cache, tags_vector, word_offset)
+	BEGIN
+		s_readdata <= cache(index)(0)(word_offset);
+		FOR i IN 0 TO SLOTS_PER_SET-1 LOOP
+			IF tag = tags_vector(index)(i) THEN
+				s_readdata <= cache(index)(i)(word_offset);
+			END IF;
+		END LOOP;
+	END PROCESS;
 
 --	s_readdata <= cache(index)(word_offset);					-- We can continuously update this output because the processor will only read it in the HIT state
 	tag <= s_addr(14 downto (word_bits+set_bits+2));

@@ -15,7 +15,7 @@ architecture behavior of cache_tb is
 				clock : in std_logic;
 				reset : in std_logic;
 
-	-- Avalon interface --
+				-- Avalon interface --
 				s_addr : in std_logic_vector (31 downto 0);
 				s_read : in std_logic;
 				s_readdata : out std_logic_vector (31 downto 0);
@@ -49,7 +49,7 @@ architecture behavior of cache_tb is
 			 );
 	END COMPONENT;
 
--- test SIGNALs 
+	-- test SIGNALs 
 	SIGNAL reset : std_logic := '0';
 	SIGNAL clk : std_logic := '0';
 	CONSTANT clk_period : time := 1 ns;
@@ -77,8 +77,8 @@ BEGIN
 
 	s_addr <= "00000000000000000" & tag & index & word_offest & byte_offset;
 
--- Connect the COMPONENTs which we instantiated above to their
--- respective SIGNALs.
+	-- Connect the COMPONENTs which we instantiated above to their
+	-- respective SIGNALs.
 	dut: cache 
 	PORT MAP(
 				clock => clk,
@@ -123,32 +123,32 @@ BEGIN
 	BEGIN
 
 		WAIT FOR clk_period;
-  -- put your tests here
-  -- little ENDian system
-  -- since data(addr) = addr(7 downto 0)
-  -- only last 8 bits because mem width is one byte
+		-- put your tests here
+		-- little ENDian system
+		-- since data(addr) = addr(7 downto 0)
+		-- only last 8 bits because mem width is one byte
 		tag <= (OTHERS => '0');
 		index <= (0 => '1', OTHERS => '0');
 		word_offest <= (OTHERS => '0');
 		byte_offset <= (OTHERS => '0');
 
-	-- read a word
-	-- we load word at 0x10
-	-- bytes at 0x10, 0x11, 0x12, 0x13 will be loaded
-	-- data word is 0x13121110
+		-- read a word
+		-- we load word at 0x10
+		-- bytes at 0x10, 0x11, 0x12, 0x13 will be loaded
+		-- data word is 0x13121110
 		s_read <= '1';
 		s_write <= '0';
 		s_writedata <= (OTHERS => '0');
 		REPORT "WAITING";
 		WAIT UNTIL s_WAITrequest = '0';
-		ASSERT s_readdata = X"13121110" SEVERITY ERROR;
+		ASSERT s_readdata = X"13121110" REPORT "FIRST Invalid initial read! Expected 0x13121110 and got " & integer'image(to_integer(unsigned(s_readdata))) SEVERITY ERROR;
 		s_read <= '0';
 
 		WAIT FOR 4*clk_period;
-  -- load another word into cache
-  -- we load word at 0x220
-  -- bytes at 0x220, 0x221, 0x222, 0x223 will be loaded
-  -- data word is 0x23222120
+		-- load another word into cache
+		-- we load word at 0x220
+		-- bytes at 0x220, 0x221, 0x222, 0x223 will be loaded
+		-- data word is 0x23222120
 		tag <= (0 => '1', OTHERS => '0');
 		index <= (1 => '1', OTHERS => '0');
 		s_read <= '1';
@@ -156,22 +156,23 @@ BEGIN
 		s_writedata <= (OTHERS => '0');
 		REPORT "WAITING";
 		WAIT UNTIL s_WAITrequest = '0';
-		ASSERT s_readdata = x"23222120" SEVERITY ERROR;
+		ASSERT s_readdata = x"23222120" REPORT "SECOND Invalid initial read!" SEVERITY ERROR;
 		s_read <= '0';
 
 
-  -- write to previous address
-  -- write to address FOR block loaded into memory
+		-- write to previous address
+		-- write to address FOR block loaded into memory
 		WAIT FOR 4*clk_period;
 		s_read <= '0';
 		s_write <= '1';
 		s_writedata <= (OTHERS => '1');
 		REPORT "WAITING";
 		WAIT UNTIL s_WAITrequest = '0';
+		WAIT FOR 2*clk_period;
 		s_write <= '0';
 
-  -- write to block that maps to same set
-  -- to trigger write back
+		-- write to block that maps to same set
+		-- to trigger write back
 		WAIT FOR 4*clk_period;
 		tag <= (1 => '1', OTHERS => '0');
 		s_read <= '1';
@@ -182,8 +183,8 @@ BEGIN
 		s_read <= '0';
 
 		WAIT FOR 6*clk_period;
-  -- read and check whether write back
-  -- data present in main memory
+		-- read and check whether write back
+		-- data present in main memory
 		tag <= (0 => '1', OTHERS => '0');
 		index <= (1 => '1', OTHERS => '0');
 		s_read <= '1';
@@ -191,16 +192,16 @@ BEGIN
 		s_writedata <= (OTHERS => '0');
 		REPORT "WAITING";
 		WAIT UNTIL s_WAITrequest = '0';
-		ASSERT s_readdata = x"FFFFFFFF" SEVERITY ERROR;
+		ASSERT s_readdata = x"FFFFFFFF" REPORT "THIRD Writeback didn't work!" SEVERITY ERROR;
 		s_read <= '0';
 
 		WAIT FOR 4*clk_period;
-  -- Attempt to read misaligned word
-  -- cache should ignore 2 lsb bit of s_addr
-  -- aka auto-align block request
-  -- since address is 0x7FFF
-  -- data loaded from 0x7FFC, 0x7FFD, 0x7FFE, 0x7FFF
-  -- loaded word should be 0xFFFEFDFC
+		-- Attempt to read misaligned word
+		-- cache should ignore 2 lsb bit of s_addr
+		-- aka auto-align block request
+		-- since address is 0x7FFF
+		-- data loaded from 0x7FFC, 0x7FFD, 0x7FFE, 0x7FFF
+		-- loaded word should be 0xFFFEFDFC
 		tag <= (OTHERS => '1');
 		index <= (OTHERS => '1');
 		word_offest <= (OTHERS => '1');
@@ -210,18 +211,18 @@ BEGIN
 		s_writedata <= (OTHERS => '0');
 		REPORT "WAITING";
 		WAIT UNTIL s_WAITrequest = '0';
-		ASSERT s_readdata = x"FFFEFDFC" SEVERITY ERROR;
+		ASSERT s_readdata = x"FFFEFDFC" REPORT "FOURTH Misaligned word read returned incorrect result!" SEVERITY ERROR;
 		s_read <= '0';
 
 
 		WAIT FOR 4*clk_period;
-  -- attempt to trigger write allocate policy
-  -- write to block not present in memory
-  -- address is 0x0800
-  -- data loaded from 0x0800, 0x0801, 0x0802, 0x8003
-  -- loaded word is 03020100
+		-- attempt to trigger write allocate policy
+		-- write to block not present in memory
+		-- address is 0x0800
+		-- data loaded from 0x0800, 0x0801, 0x0802, 0x8003
+		-- loaded word is 03020100
 
-  --trigger write miss
+		--trigger write miss
 		tag <= (2 => '1', OTHERS => '0');
 		index <= (OTHERS => '0');
 		word_offest <= (OTHERS => '0');
@@ -232,16 +233,16 @@ BEGIN
 		REPORT "WAITING";
 		WAIT UNTIL s_WAITrequest = '0';
 		s_write <= '0';
-  --verify write allocate
+		--verify write allocate
 		s_read <= '1';
 		s_writedata <= (OTHERS => '0');
 		REPORT "WAITING";
 		WAIT UNTIL s_WAITrequest = '0';
-		ASSERT s_readdata = x"FFFFFFFF" SEVERITY ERROR;
+		ASSERT s_readdata = x"FFFFFFFF" REPORT "FIFTH Write allocate failed!" SEVERITY ERROR;
 		s_read <= '0';
 		WAIT FOR 1*clk_period;
 
-  --trigger another write miss with tag collision
+		--trigger another write miss with tag collision
 		s_write <= '1';
 		tag <= (5 => '1', OTHERS => '0');
 		s_writedata <= x"DEADBEEF";
@@ -249,34 +250,34 @@ BEGIN
 		WAIT UNTIL s_WAITrequest = '0';
 		s_write <= '0';
 		WAIT FOR 1*clk_period;
-  --verify write back
+		--verify write back
 		tag <= (2 => '1', OTHERS => '0');
 		s_read <= '1';
 		s_writedata <= (OTHERS => '0');
 		REPORT "WAITING";
 		WAIT UNTIL s_WAITrequest = '0';
-		ASSERT s_readdata = x"FFFFFFFF" SEVERITY ERROR;
+		ASSERT s_readdata = x"FFFFFFFF" REPORT "SIXTH Write miss tag collision failed!" SEVERITY ERROR;
 		s_read <= '0';
 		WAIT FOR 4*clk_period;
 
-  --evaluate reset performance
-  --generate writeback first
+		--evaluate reset performance
+		--generate writeback first
 		s_write <= '1';
 		tag <= (2 => '1', OTHERS => '0');
 		s_writedata <= X"DEADBEEF";
 		REPORT "WAITING";
 		WAIT UNTIL s_WAITrequest = '0';
 		WAIT FOR 1*clk_period;
-  --reset before the dirty word is written back to memory
+		--reset before the dirty word is written back to memory
 		reset <= '1';
 		WAIT FOR 0.1 * clk_period;
 		reset <= '0';
 		WAIT FOR 0.9 * clk_period;
-  --ensure that the dirty bit was not written back to memory, and its previous value is still in memory
+		--ensure that the dirty bit was not written back to memory, and its previous value is still in memory
 		s_read <= '1';
 		REPORT "WAITING";
 		WAIT UNTIL s_WAITrequest = '0';
-		ASSERT s_readdata = X"FFFFFFFF" SEVERITY ERROR;
+		ASSERT s_readdata = X"FFFFFFFF" REPORT "SEVENTH Reset Failed" SEVERITY ERROR;
 		s_read <= '0';
 		REPORT "FINISHED RUNNING TESTS";
 
