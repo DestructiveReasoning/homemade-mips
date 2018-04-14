@@ -10,14 +10,6 @@ entity if_stage is
         clock:      IN STD_LOGIC;
         q_new_addr: OUT STD_LOGIC_VECTOR(31 downto 0);  -- outputs pc + 4
         q_instr:    OUT STD_LOGIC_VECTOR(31 downto 0);  -- outputs instruction fetched from memory
-
-        -- unified memory access
-        m_addr : out integer range 0 to 32768-1;
-        m_read : out std_logic;
-        m_readdata : in std_logic_vector (7 downto 0);
-        m_write : out std_logic;
-        m_writedata : out std_logic_vector (7 downto 0);
-        m_WAITrequest : in std_logic
     );
 END if_stage;
 
@@ -72,19 +64,19 @@ ARCHITECTURE fetch OF if_stage IS
     signal not_clock : STD_LOGIC;
     
 BEGIN
-  --  -- Initialized memory for reading only
-  --  instr_mem : memory
-  --  PORT MAP (
-  --      clock => not_clock,
-	--	writedata => x"0000_0000",
-	--	address => q_addr,
-	--	memwrite => '0',
-	--	memread => '1',
-	--	readdata => q_instr,
-	--	WAITrequest => open
-  --  );
-  --                         if_stage ports
-  -- if_stage <--> cache <--------------------> cpu_tb/ram
+    -- Initialized memory for reading only
+    ram : memory
+    PORT MAP (
+        clock => not_clock,
+      	writedata => x"0000_0000",
+		    address => m_addr,
+		    memwrite => '0',
+		    memread => '1',
+		    readdata => m_readdata,
+		    WAITrequest => open
+    );
+  --                         
+  -- if_stage <--> cache <--> ram
   instr_mem : cache
 	PORT MAP(
         -- TODO verify that using the regular clock is okay
@@ -92,9 +84,10 @@ BEGIN
 				clock => clock,
 				reset => '0',
 
-        -- inputs to if_stage
+        -- between cpu_tb and if_stage
 				s_addr => q_addr,
-				s_read => '1',
+				s_read => '1', -- TODO look into toggling this line, 
+                       -- might cause some issues when reading
 				s_readdata => q_instr,
 				s_write => '1',
 				s_writedata => x"0000_0000",
@@ -102,7 +95,7 @@ BEGIN
         -- TODO change to represent cache miss condition
 				s_WAITrequest => open,
 
-        -- outputs from if_stage to unified memory
+        -- connections between cache and unified memory
 				m_addr => m_addr,
 				m_read => m_read,
 				m_readdata => m_readdata,
