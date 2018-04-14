@@ -10,14 +10,39 @@ ENTITY cpu_tb IS
 END cpu_tb;
 
 ARCHITECTURE mips OF CPU_TB IS
+    -- unified memory
+	  COMPONENT memory is 
+	  	GENERIC(
+	  			   ram_size : INTEGER := 32768;
+	  			   mem_delay : time := 10 ns;
+	  			   clock_period : time := 1 ns
+	  		   );
+	  	PORT (
+	  			 clock: IN STD_LOGIC;
+	  			 writedata: IN STD_LOGIC_VECTOR (7 DOWNTO 0);
+	  			 address: IN INTEGER RANGE 0 TO ram_size-1;
+	  			 memwrite: IN STD_LOGIC;
+	  			 memread: IN STD_LOGIC;
+	  			 readdata: OUT STD_LOGIC_VECTOR (7 DOWNTO 0);
+	  			 WAITrequest: OUT STD_LOGIC
+	  		 );
+	  END COMPONENT;
+
     COMPONENT if_stage is
         PORT (
             new_addr:   IN STD_LOGIC_VECTOR(31 downto 0);   -- incoming pc address
             pc_en:      IN STD_LOGIC;                       -- enable line to increment pc (low when stalling)
             clock:      IN STD_LOGIC;
             q_new_addr: OUT STD_LOGIC_VECTOR(31 downto 0);  -- outputs pc + 4
-            q_instr:    OUT STD_LOGIC_VECTOR(31 downto 0)   -- outputs instruction fetched from memory
-        );
+            q_instr:    OUT STD_LOGIC_VECTOR(31 downto 0);  -- outputs instruction fetched from memory
+            -- unified memory access
+            m_addr : out integer range 0 to 32768-1;
+            m_read : out std_logic;
+            m_readdata : in std_logic_vector (7 downto 0);
+            m_write : out std_logic;
+            m_writedata : out std_logic_vector (7 downto 0);
+            m_WAITrequest : in std_logic
+            );
     END COMPONENT;
 
     COMPONENT id_stage IS
@@ -139,6 +164,15 @@ ARCHITECTURE mips OF CPU_TB IS
   signal branching_forward_rs : integer range 0 to 1;
 
   signal write_reg : std_logic := '0';
+
+
+  -- unified memory control signals
+	SIGNAL m_addr : integer range 0 to 2147483647;
+	SIGNAL m_read : std_logic;
+	SIGNAL m_readdata : std_logic_vector (7 downto 0);
+	SIGNAL m_write : std_logic;
+	SIGNAL m_writedata : std_logic_vector (7 downto 0);
+	SIGNAL m_WAITrequest : std_logic; 
 BEGIN
     -- STALLING LOGIC
     -- This may need some work
@@ -166,15 +200,39 @@ BEGIN
 	reset_id <=  (not stall); -- stall is implemented with negative logic
 	pc_addr <= the_new_addr when reset = '0' else X"00000000"; -- when reset, set PC to 0
 
+
+    -- temporarily connected only to if
+    -- TODO connect to memory as well
+   	RAM : memory
+   	PORT MAP (
+   				 clock => clock,
+   				 writedata => m_writedata,
+   				 address => m_addr,
+   				 memwrite => m_write,
+   				 memread => m_read,
+   				 readdata => m_readdata,
+   				 WAITrequest => m_WAITrequest
+   			 );
+
     fetch: if_stage
     PORT MAP (
         pc_addr,   -- new pc fed back by ID (in case of a branch, for example)
         stall,          -- when stall is high, the pc won't be modified
         clock,
         if_newpc_in,     -- PC + 4
-        if_instr_in    -- instruction fetched from memory
+        if_instr_in,    -- instruction fetched from memory
+
+        -- internal cache to ram
+        m_addr, 
+        m_read, 
+        m_readdata, 
+        m_write, 
+        m_writedata, 
+        m_WAITrequest
     );
 
+    -- for cache miss probably rest this register
+    -- insert nops in pipeline to stall
     if_id: pipe_reg
     PORT MAP (
         clock,
@@ -364,7 +422,8 @@ BEGIN
 	-- resolves WB/MEM data hazard
     mem_wb_forward_data <= wb_data when (mem_instr_out(15 downto 11) = ex_instr_out(15 downto 11) and mem_ctrlsigs_out(regwrite) = '1') else ex_datab_out;
 
-    memory: mem_stage
+    -- name change to avoid conflict with memroy component
+    memory_stage: mem_stage
     PORT MAP (
         clock,
         ex_dataa_out,
