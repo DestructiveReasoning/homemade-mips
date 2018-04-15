@@ -5,6 +5,7 @@ proc AddWaves {} {
   add wave -position end sim:/testbench/cpu/decode/*
   add wave -position end sim:/testbench/cpu/fetch/*
   add wave -position end sim:/testbench/*
+  add wave -position end sim:/testbench/cpu/fetch/instr_mem/*
 }                                           
 
 vlib work
@@ -20,6 +21,7 @@ vcom mem_stage.vhd
 vcom pipe_reg.vhd
 vcom registerfile.vhd
 vcom memory.vhd
+vcom cache.vhd
 
 ;# Start simulation
 vsim testbench

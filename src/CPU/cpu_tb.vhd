@@ -16,7 +16,8 @@ ARCHITECTURE mips OF CPU_TB IS
             pc_en:      IN STD_LOGIC;                       -- enable line to increment pc (low when stalling)
             clock:      IN STD_LOGIC;
             q_new_addr: OUT STD_LOGIC_VECTOR(31 downto 0);  -- outputs pc + 4
-            q_instr:    OUT STD_LOGIC_VECTOR(31 downto 0)   -- outputs instruction fetched from memory
+            q_instr:    OUT STD_LOGIC_VECTOR(31 downto 0);   -- outputs instruction fetched from memory
+			miss:		OUT STD_LOGIC
         );
     END COMPONENT;
 
@@ -41,7 +42,7 @@ ARCHITECTURE mips OF CPU_TB IS
             clock: IN STD_LOGIC;
             reset: IN STD_LOGIC;
             s_clr: in STD_LOGIC;
-        stall:in STD_LOGIC;
+			stall:in STD_LOGIC;
             instr, newpc, data_a, data_b, imm                               : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
             memread, memwrite, alusrc, pcsrc, regwrite, regdst, memtoreg    : IN STD_LOGIC;
             q_instr, q_newpc, q_data_a, q_data_b, q_imm                     : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
@@ -65,7 +66,8 @@ ARCHITECTURE mips OF CPU_TB IS
             addr:       IN STD_LOGIC_VECTOR(31 downto 0);
             read,write: IN STD_LOGIC;
             write_data: IN STD_LOGIC_VECTOR(31 downto 0);
-            output:     OUT STD_LOGIC_VECTOR(31 downto 0)
+            output:     OUT STD_LOGIC_VECTOR(31 downto 0);
+			miss:		OUT STD_LOGIC
         );
     END COMPONENT;
 
@@ -85,6 +87,7 @@ ARCHITECTURE mips OF CPU_TB IS
 	-- input and output signals for the IF/ID register
     SIGNAL if_instr_in,if_newpc_in,if_instr_out,if_newpc_out: STD_LOGIC_VECTOR(31 downto 0) := (others => '0');
 	SIGNAL the_new_addr: STD_LOGIC_VECTOR(31 downto 0) := (others => '0'); -- new PC address loaded into IF
+	SIGNAL if_miss: STD_LOGIC := '1';
 
 	-- input and output signals for the ID/EX register
     SIGNAL id_instr_in,id_newpc_in,id_instr_out,id_newpc_out: STD_LOGIC_VECTOR(31 downto 0) := (others => '0');
@@ -105,6 +108,7 @@ ARCHITECTURE mips OF CPU_TB IS
     SIGNAL mem_dataa_out, mem_datab_out: STD_LOGIC_VECTOR(31 downto 0) := (others => '0');
     SIGNAL mem_imm_out: STD_LOGIC_VECTOR(31 downto 0);
     SIGNAL mem_ctrlsigs_in, mem_ctrlsigs_out: STD_LOGIC_VECTOR(6 downto 0);
+	SIGNAL mem_miss: STD_LOGIC := '1';
 
 	-- output of WB stage
     SIGNAL wb_data: STD_LOGIC_VECTOR(31 downto 0);
@@ -118,6 +122,7 @@ ARCHITECTURE mips OF CPU_TB IS
     signal ex_forward_b : integer range 0 to 2; -- selects which data to forward into B input of ALU
 	signal ex_forward_prealusrc : std_logic_vector(31 downto 0); -- forwarded data before selecting between data and imm
 
+	signal cache_miss: STD_LOGIC := '1';
 	signal reset_id: std_logic := '0'; -- signal to clear ID/EX and freeze IF/ID
 	signal pc_addr: std_logic_vector(31 downto 0);
 
@@ -139,7 +144,11 @@ ARCHITECTURE mips OF CPU_TB IS
   signal branching_forward_rs : integer range 0 to 1;
 
   signal write_reg : std_logic := '0';
+  
+  signal if_stall: STD_LOGIC := '1';
 BEGIN
+	cache_miss <= if_miss or mem_miss;
+	if_stall <= cache_miss or reset_id;
     -- STALLING LOGIC
     -- This may need some work
     -- For the subset of MIPS that this CPU implements, the only instruction that causes a stall is lw
@@ -172,7 +181,8 @@ BEGIN
         stall,          -- when stall is high, the pc won't be modified
         clock,
         if_newpc_in,     -- PC + 4
-        if_instr_in    -- instruction fetched from memory
+        if_instr_in,    -- instruction fetched from memory
+		if_miss
     );
 
     if_id: pipe_reg
@@ -180,7 +190,7 @@ BEGIN
         clock,
         reset,                                -- the IF/ID reg is never reset
         '0',
-        reset_id,
+		if_stall,
         if_instr_in,                        -- pull instr from IF stage
         if_newpc_in,                        -- propagate PC+4 for next addr calculation
         (others => '0'),                    -- data not decoded yet
@@ -269,7 +279,7 @@ BEGIN
         clock,
         reset,
 		reset_id, -- Clear out the id/ex (turn instruction into nop) when stalling
-		'0',
+		cache_miss,
         -- pull all pipeline register contents from the decoding from the ID stage
         id_instr_in, id_newpc_in, id_dataa_in, id_datab_in, id_imm_in,
         id_ctrlsigs_in(memread), id_ctrlsigs_in(memwrite), id_ctrlsigs_in(alusrc),
@@ -340,7 +350,7 @@ BEGIN
         clock,
 		reset,
 		'0',
-		'0',
+		cache_miss,
         -- place ALU output in data A section
 		-- place pre-alu-src (before selecting imm) in B, to preserve data to be written in sw, for example
         ex_instr_in, id_newpc_out, ex_alures, ex_forward_prealusrc, id_imm_out,
@@ -371,7 +381,8 @@ BEGIN
         ex_ctrlsigs_out(memread), ex_ctrlsigs_out(memwrite),
         mem_wb_forward_data,
         -- forwarding data from lw to sw
-        mem_dataa_in
+        mem_dataa_in,
+		mem_miss
     );
 
     mem_wb: pipe_reg
@@ -379,7 +390,7 @@ BEGIN
         clock,
         reset,
 		'0',
-		'0',
+		cache_miss,
         ex_instr_out, ex_newpc_out, mem_dataa_in, ex_dataa_out, ex_imm_out,
         ex_ctrlsigs_out(memread), ex_ctrlsigs_out(memwrite), ex_ctrlsigs_out(alusrc),
         ex_ctrlsigs_out(pcsrc), ex_ctrlsigs_out(regwrite), ex_ctrlsigs_out(regdst), ex_ctrlsigs_out(memtoreg),
