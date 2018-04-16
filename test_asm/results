@@ -1,15 +1,20 @@
 gcd
 19000ps - 19CC
 ladder
-13000ps - 13 CC
+13000ps - 13 CC (optmized)
+16500ps - 16 CC (unoptmized)
 collatz
-98000ps - 98 CC
+98000ps - 98 CC (optmized)
+120500ps- 120 CC (unoptmized)
 
 test_program_A
-45000ps - 45CC
+45000ps - 45CC (optimized)
+49500ps - 49CC (unoptmized)
 
 test_program_B
-24500ps - 24CC
+24500ps - 24CC (Optimized)
+31500ps - 31CC (Unoptimized)
 
 test_program_C
-212500ps - 212CC
+212500ps - 212CC (optimized)
+242500ps - 242CC (upoptimized)
