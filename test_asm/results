@@ -8,5 +8,8 @@ collatz
 test_program_A
 45000ps
 
+test_program_B
+24500ps
+
 test_program_C
-215000ps
+212500ps
