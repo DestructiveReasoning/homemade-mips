@@ -1,5 +1,6 @@
 gcd
-19000ps - 19CC
+16500ps - 16CC (optimized)
+20500ps - 20CC (unoptmized)
 ladder
 13000ps - 13 CC (optmized)
 16500ps - 16 CC (unoptmized)
