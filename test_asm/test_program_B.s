@@ -31,30 +31,15 @@
 # r1:  0x100
 # r0:  0x0
 
-# skip over these functions
+start: beq $1, $2, main
+beq $2, $0, main
+add $3, $2, $1
+jal end
+j end
+j terminate
+main: addi $1, $0, 15
+addi $2, $0, 16
 j start
-# just changes $1 128 -> 256
-side_loop1: add $2, $1, $2 # change loop1 end condition
-addi $5, $0, 1 # side_loop1 end condition
-beq $5, $4, loop1
-j side_loop1
-
-j start # you shouldn't be here
-loop2: add $7, $3, $31
-addi $8, $0, 1
-bne $8, $7, loop2
-addi $31, $31, 1 # skip the line after the jal that called this subroutine
+end: addi $31, $31, 1
 jr $31
-
-start: addi $1, $0, 128 # first branch condition
-addi $2, $0, 1 # exponential counter
-addi $3, $0, 16 # first side branch condition
-addi $4, $0, 8 # side_loop1 end condition
-loop1: beq $2, $1, end_loop1
-add $2, $2, $2 # grow in powers of 2
-beq $2, $3, side_loop1
-j loop1
-end_loop1: addi $30, $0, 15 # End marker
-jal loop2
-addi $29, $0, 15 # should be skipped
-addi $28, $0, 15
+terminate: addi $30, $0, 15

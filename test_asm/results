@@ -1,12 +1,15 @@
 gcd
-19000ps
+19000ps - 19CC
 ladder
-13000ps
+13000ps - 13 CC
 collatz
-98000ps
+98000ps - 98 CC
 
 test_program_A
-45000ps
+45000ps - 45CC
+
+test_program_B
+24500ps - 24CC
 
 test_program_C
-215000ps
+212500ps - 212CC
