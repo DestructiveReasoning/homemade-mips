@@ -4,3 +4,9 @@ ladder
 13000ps
 collatz
 98000ps
+
+test_program_A
+45000ps
+
+test_program_C
+215000ps
