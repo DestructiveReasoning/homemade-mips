@@ -32,10 +32,15 @@ BEGIN
             when "00011" => -- div
                 -- remainder goes to hi portion of 64b reg, division goes to lo portion, as per MIPS spec
                 if(rising_edge(clock)) then
-                    wide_out(63 downto 32) <= std_logic_vector(unsigned(a) mod unsigned(b));
-                    wide_out(31 downto 0) <= std_logic_vector(signed(a) / signed(b));
+					if b = X"00000000" then
+						wide_out <= (others => '0');
+					else
+						wide_out(63 downto 32) <= std_logic_vector(unsigned(a) mod unsigned(b));
+						wide_out(31 downto 0) <= std_logic_vector(signed(a) / signed(b));
+					end if;
                 end if;
-                output <= std_logic_vector(to_signed(to_integer(signed(a)) / to_integer(signed(b)), 32));
+--                output <= std_logic_vector(to_signed(to_integer(signed(a)) / to_integer(signed(b)), 32));
+                output <= wide_out(31 downto 0);
             when "00100" => -- set less than (includes slt and slti)
                 if(to_integer(signed(a)) < to_integer(signed(b))) then
                     output <= X"00000001";
